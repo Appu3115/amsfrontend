@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { loginApi } from "../services/authservice";
-import { useAuth } from "../auth/authcontext";
-import { useNavigate } from "react-router-dom";
+import { useState,} from "react";
+import axios from "axios";
+import useAuth from "../auth/useAuth";
+import { useNavigate, Link } from "react-router-dom";
+import "../styles/Login.css";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -10,47 +11,122 @@ const Login = () => {
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
+
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    console.log("➡️ Login form data:", form);
+
     try {
-      const res = await loginApi(form);
-      login(res.data);
-      navigate("/dashboard");
+      console.log("➡️ Sending login request to backend...");
+
+      const res = await axios.post(
+        "http://localhost:8080/user/login",
+        form,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ Full API response:", res);
+      console.log("✅ Response data:", res.data);
+
+      const data = res.data;
+
+      // store user + token
+      login(data);
+
+      const role = data.role?.toUpperCase();
+      console.log("🔐 Logged-in role:", role);
+
+      if (role === "ADMIN") {
+        navigate("/admindashboard");
+      } else {
+        navigate("/employeedashboard");
+      }
     } catch (err) {
-      alert(err.response?.data || "Login failed");
+      console.error("❌ Login error object:", err);
+
+      if (err.response) {
+        console.error("❌ Status:", err.response.status);
+        console.error("❌ Backend error data:", err.response.data);
+        setError(
+          typeof err.response.data === "string"
+            ? err.response.data
+            : "Server error"
+        );
+      } else if (err.request) {
+        console.error("❌ No response from backend:", err.request);
+        setError("Backend not responding (check server / CORS)");
+      } else {
+        console.error("❌ Axios config error:", err.message);
+        setError("Unexpected error: " + err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
+    <div className="login-container">
+      <div className="login-card">
+        <h2 className="login-title">Welcome Back</h2>
+        <p className="login-subtitle">Login to continue</p>
 
-      <input
-        name="email"
-        placeholder="Email"
-        onChange={handleChange}
-      />
-      <input
-        name="employeeId"
-        placeholder="Employee ID"
-        onChange={handleChange}
-      />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        onChange={handleChange}
-      />
+        <form onSubmit={handleSubmit}>
+          <input
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
 
-      <button type="submit">Login</button>
-    </form>
+          <input
+            name="employeeId"
+            placeholder="Employee ID"
+            value={form.employeeId}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+
+          {error && <p className="login-error">{error}</p>}
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <div className="login-link">
+          Don’t have an account? <Link to="/register">Register</Link>
+        </div>
+      </div>
+    </div>
   );
 };
 
