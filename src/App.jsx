@@ -30,6 +30,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+<<<<<<< HEAD
+          <Route path="/attendance/dashboard" element={<AttendanceDashboard />} />
+          <Route path="/attendance/list" element={<AttendanceList />} />
+=======
+
+          {/* Manager + Employee */}
+          <Route
+            path="/employeedashboard"
+            element={
+              <ProtectedRoute allowedRoles={["EMPLOYEE"]}>
+                <EmployeeDashboard />
+              </ProtectedRoute>
+            }
+          />
+>>>>>>> ed36aada56f47c7c5ef4544d895e8acf6fc9e1a9
         </Routes>
       </BrowserRouter>
     </AuthProvider>
