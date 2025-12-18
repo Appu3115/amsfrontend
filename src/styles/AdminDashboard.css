@@ -1,0 +1,187 @@
+/* ===== Root Colors ===== */
+/* ===== Root Colors (ORANGE THEME) ===== */
+:root {
+  --primary: #f97316;          /* main orange */
+  --primary-light: #fff7ed;    /* light orange bg */
+  --sidebar-bg: #1f2937;       /* dark slate */
+  --sidebar-hover: #374151;    /* hover dark */
+  --text-dark: #111827;        /* dark text */
+  --text-muted: #6b7280;       /* muted text */
+  --bg-main: #f9fafb;          /* page background */
+}
+
+
+/* ===== Layout ===== */
+.admin-container {
+  display: flex;
+  height: 100vh;
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--bg-main);
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 72px;
+  background: var(--sidebar-bg);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  margin-left: 0px;
+}
+
+.sidebar:hover {
+  width: 240px;
+}
+
+.logo {
+  padding: 20px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  border-bottom: 1px solid #1e293b;
+}
+
+/* ===== Sidebar Nav ===== */
+.sidebar-nav {
+  flex: 1;
+  margin-top: 0px;
+  margin-left: 0px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background: var(--sidebar-hover);
+  color: white;
+}
+
+.nav-link.active {
+  background: rgba(79, 70, 229, 0.15);
+  color: #c7d2fe;
+  border-left: 3px solid var(--primary);
+}
+
+.icon {
+  font-size: 24px;
+  min-width: 24px;
+}
+
+.link-text {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar:hover .link-text {
+  opacity: 1;
+}
+
+/* ===== Logout ===== */
+.sidebar-logout {
+  padding: 10px;
+  border-top: 1px solid #1e293b;
+}
+
+.logout-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #7f1d1d;
+  color: white;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  background: white;
+  padding: 18px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  
+}
+
+.navbar h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-dark);
+}
+
+.admin-name {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ===== Page Content ===== */
+.page-content {
+  padding-top: 24px;
+  padding-right: 32px;
+  padding-bottom: 32px;
+  padding-left: 20px;
+}
+
+
+.page-content h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: var(--text-dark);
+}
+
+/* ===== Stats Cards ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 22px;
+}
+
+.stat-card {
+  background: white;
+  padding: 22px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border-left: 5px solid var(--primary);
+  border-top: 4px solid var(--primary);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.card-value {
+  margin-top: 10px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-dark);
+}

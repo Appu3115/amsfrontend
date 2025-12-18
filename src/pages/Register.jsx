@@ -11,7 +11,7 @@ const DEPARTMENTS = [
   "HR",
   "Finance",
   "Accounts",
-  "Operations",
+  "Operations"
 ];
 
 const Register = () => {
@@ -24,7 +24,7 @@ const Register = () => {
     confirmPassword: "",
     phone: "",
     departmentName: "",
-    role: "EMPLOYEE", // ✅ default role
+    role: "EMPLOYEE",
     joinDate: "",
   });
 
