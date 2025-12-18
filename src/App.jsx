@@ -4,6 +4,11 @@ import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { AuthProvider } from "./auth/authcontext";
+import AttendanceDashboard from "./pages/attendance/AttendanceDashboard";
+import AttendanceList from "./pages/attendance/AttendanceList";
+
+
+
 
 function App() {
   return (
@@ -22,6 +27,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/attendance/dashboard" element={<AttendanceDashboard />} />
+          <Route path="/attendance/list" element={<AttendanceList />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
