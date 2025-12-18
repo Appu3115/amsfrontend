@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { AuthProvider } from "./auth/authcontext";
 import AttendanceDashboard from "./pages/attendance/AttendanceDashboard";
@@ -15,20 +16,20 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login/>}/>
-          <Route path="/Login" element={<Login />} />
+          {/* Public Routes */}
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
+          {/* Admin only */}
           <Route
-            path="/dashboard"
+            path="/admindashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
-          <Route path="/attendance/dashboard" element={<AttendanceDashboard />} />
-          <Route path="/attendance/list" element={<AttendanceList />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

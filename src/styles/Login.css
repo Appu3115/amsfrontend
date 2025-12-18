@@ -1,0 +1,122 @@
+:root {
+  --primary-orange: #f97316;
+  --primary-orange-dark: #ea580c;
+  --accent-orange: rgba(249, 115, 22, 0.12);
+
+  --bg-page: #f5f6f8;
+  --bg-card: #ffffff;
+
+  --border-color: #e5e7eb;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+}
+
+/* Page background */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-page);
+}
+
+/* Card */
+.login-card {
+  width: 420px;
+  background: var(--bg-card);
+  padding: 32px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-top: 4px solid var(--primary-orange);
+}
+
+/* Headings */
+.login-title {
+  text-align: center;
+  margin-bottom: 6px;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.login-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 24px;
+}
+
+/* Inputs */
+.login-card input {
+  width: 100%;
+  padding: 11px 12px;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  font-size: 14px;
+  background: #ffffff;
+  color: var(--text-dark);
+  transition: border 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 2px var(--accent-orange);
+}
+
+/* Button */
+.login-card button {
+  width: 100%;
+  padding: 11px;
+  background: var(--primary-orange);
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s ease, box-shadow 0.15s ease;
+}
+
+.login-card button:hover {
+  background: var(--primary-orange-dark);
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+}
+
+/* Register link */
+.login-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.login-link a {
+  color: var(--primary-orange);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-card {
+    width: 92%;
+    padding: 24px;
+  }
+}
+.login-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 6px 0 10px;
+  text-align: center;
+}
+
+.login-card button:disabled {
+  background: #fdba74;
+  cursor: not-allowed;
+}

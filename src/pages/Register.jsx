@@ -24,7 +24,7 @@ const Register = () => {
     confirmPassword: "",
     phone: "",
     departmentName: "",
-    role: "EMPLOYEE",
+    role: "EMPLOYEE", // ✅ default role
     joinDate: "",
   });
 
@@ -36,6 +36,13 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔐 Simple frontend validation
+    if (form.password !== form.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
     try {
       await registerApi(form);
@@ -64,7 +71,7 @@ const Register = () => {
             required
           />
 
-          {/* 🔽 Department Dropdown (Static) */}
+          {/* Department Dropdown */}
           <select
             name="departmentName"
             value={form.departmentName}
@@ -126,17 +133,6 @@ const Register = () => {
             required
           />
         </div>
-
-        {/* 🔽 Role Dropdown */}
-        <select
-          name="role"
-          value={form.role}
-          onChange={handleChange}
-          required
-        >
-          <option value="EMPLOYEE">Employee</option>
-          <option value="MANAGER">Manager</option>
-        </select>
 
         <input
           name="joinDate"
