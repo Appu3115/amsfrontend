@@ -5,8 +5,12 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { AuthProvider } from "./auth/authcontext";
-import AttendanceDashboard from "./pages/attendance/AttendanceDashboard";
-import AttendanceList from "./pages/attendance/AttendanceList";
+import AttendanceDashboard from "./pages/AttendanceDashboard";
+import AttendancePunchIn from "./components/AttendancePunchIn";
+import AttendancePunchOut from "./components/AttendancePunchOut";
+import AttendanceList from "./components/AttendanceList";
+
+
 
 
 
@@ -30,11 +34,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-<<<<<<< HEAD
-          <Route path="/attendance/dashboard" element={<AttendanceDashboard />} />
-          <Route path="/attendance/list" element={<AttendanceList />} />
-=======
-
+          
           {/* Manager + Employee */}
           <Route
             path="/employeedashboard"
@@ -44,7 +44,53 @@ function App() {
               </ProtectedRoute>
             }
           />
->>>>>>> ed36aada56f47c7c5ef4544d895e8acf6fc9e1a9
+          {/* <Route
+            path="/attendance"
+            element={
+              <ProtectedRoute allowedRoles={["EMPLOYEE","ADMIN"]}>
+                <AttendanceDashboard />
+              </ProtectedRoute>
+            }
+          /> */}
+
+          <Route path="/attendance" element={<AttendanceDashboard />} />
+        
+
+          {/* <Route
+            path="/attendance/punch-in"
+            element={
+              <ProtectedRoute allowedRoles={["EMPLOYEE"]}>
+                <AttendancePunchIn />
+              </ProtectedRoute>
+            }
+          /> */}
+
+           <Route path="/attendance/punch-in" element={<AttendancePunchIn />} />
+
+
+          {/* <Route
+            path="/attendance/punch-out"
+            element={ 
+              <ProtectedRoute allowedRoles={["EMPLOYEE"]}>
+                <AttendancePunchOut />
+              </ProtectedRoute>
+            }
+          /> */}
+
+          <Route path="/attendance/punch-out" element={<AttendancePunchOut />} />
+
+          {/* <Route
+            path="/attendance/list"
+            element={
+              <ProtectedRoute allowedRoles={["EMPLOYEE","ADMIN"]}>
+                <AttendanceList />
+              </ProtectedRoute>
+            }
+          /> */}
+
+          <Route path="/attendance/list" element={<AttendanceList />} />
+
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>
