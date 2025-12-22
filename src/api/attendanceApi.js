@@ -8,9 +8,19 @@ export const punchIn = (employeeId) => {
   });
 };
 
-export const punchOut = (attendanceId) => {
-  return axios.post(`${BASE_URL}/logout/${attendanceId}`);
+export const punchOut = (employeeId) => {
+  return axios.post(
+    `${BASE_URL}/logout`,
+    null, // no body
+    {
+      params: {
+        employeeId: employeeId, // RequestParam
+      },
+    }
+  );
 };
+
+
 
 export const fetchAttendance = (employeeId, date) => {
   return axios.get(`${BASE_URL}/fetch`, {
