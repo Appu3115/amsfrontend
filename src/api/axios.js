@@ -1,27 +1,33 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080", // Spring Boot backend
+  baseURL: "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: false, // IMPORTANT for JWT header-based auth
 });
 
-// Request interceptor → attach JWT
+/* ================= REQUEST INTERCEPTOR ================= */
 api.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
 
     if (token) {
+      // Ensure headers object exists
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // 🔍 TEMP DEBUG (remove later)
+    // console.log("AUTH HEADER →", config.headers.Authorization);
 
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Optional: Response interceptor (401 handling)
+/* ================= RESPONSE INTERCEPTOR ================= */
 api.interceptors.response.use(
   (response) => response,
   (error) => {

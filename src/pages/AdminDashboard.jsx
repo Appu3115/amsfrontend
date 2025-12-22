@@ -1,4 +1,7 @@
-import { NavLink } from "react-router-dom";
+import AddDepartment from "../components/AddDepartment";
+import Shifts from "../components/Shifts";
+import { useState } from "react";
+
 import {
   FaTachometerAlt,
   FaUsers,
@@ -11,7 +14,10 @@ import {
 } from "react-icons/fa";
 import "../styles/AdminDashboard.css";
 
+
 const AdminDashboard = () => {
+  const [activePage, setActivePage] = useState("dashboard");
+
   const stats = [
     { title: "Total Employees", value: 45 },
     { title: "Present Today", value: 38 },
@@ -24,47 +30,55 @@ const AdminDashboard = () => {
     <div className="admin-container">
       {/* ===== Sidebar ===== */}
       <aside className="sidebar">
-       <h2 className="logo">AMS</h2>
-
+        <h2 className="logo">AMS</h2>
 
         <nav className="sidebar-nav">
-          <NavLink to="/admin/dashboard" className="nav-link">
+          <button
+            className="nav-link"
+            onClick={() => setActivePage("dashboard")}
+          >
             <FaTachometerAlt className="icon" />
             <span className="link-text">Dashboard</span>
-          </NavLink>
+          </button>
 
-          <NavLink to="/admin/employees" className="nav-link">
+          <button className="nav-link">
             <FaUsers className="icon" />
             <span className="link-text">Employees</span>
-          </NavLink>
+          </button>
 
-          <NavLink to="/admin/departments" className="nav-link">
+          <button
+            className="nav-link"
+            onClick={() => setActivePage("departments")}
+          >
             <FaBuilding className="icon" />
             <span className="link-text">Departments</span>
-          </NavLink>
+          </button>
 
-          <NavLink to="/admin/shifts" className="nav-link">
-            <FaClock className="icon" />
-            <span className="link-text">Shifts</span>
-          </NavLink>
+          <button
+  className={`nav-link ${activePage === "shifts" ? "active" : ""}`}
+  onClick={() => setActivePage("shifts")}
+>
+  <FaClock className="icon" />
+  <span className="link-text">Shifts</span>
+</button>
 
-          <NavLink to="/admin/attendance" className="nav-link">
+
+          <button className="nav-link">
             <FaCalendarCheck className="icon" />
             <span className="link-text">Attendance</span>
-          </NavLink>
+          </button>
 
-          <NavLink to="/admin/reports" className="nav-link">
+          <button className="nav-link">
             <FaFileAlt className="icon" />
             <span className="link-text">Reports</span>
-          </NavLink>
+          </button>
 
-          <NavLink to="/admin/settings" className="nav-link">
+          <button className="nav-link">
             <FaCog className="icon" />
             <span className="link-text">Settings</span>
-          </NavLink>
+          </button>
         </nav>
 
-        {/* Logout at bottom */}
         <div className="sidebar-logout">
           <button className="logout-btn">
             <FaSignOutAlt className="icon" />
@@ -77,21 +91,28 @@ const AdminDashboard = () => {
       <main className="main-content">
         <header className="navbar">
           <h3>Admin Dashboard</h3>
-
           <span className="admin-name">Admin</span>
         </header>
 
         <section className="page-content">
-          <h2>Overview</h2>
-
-          <div className="stats-grid">
-            {stats.map((item, index) => (
-              <div key={index} className="stat-card">
-                <p className="card-title">{item.title}</p>
-                <h1 className="card-value">{item.value}</h1>
+          {/* Dashboard Overview */}
+          {activePage === "dashboard" && (
+            <>
+              <h2>Overview</h2>
+              <div className="stats-grid">
+                {stats.map((item, index) => (
+                  <div key={index} className="stat-card">
+                    <p className="card-title">{item.title}</p>
+                    <h1 className="card-value">{item.value}</h1>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
+
+          {/* Departments → AddDepartment Component */}
+          {activePage === "departments" && <AddDepartment />}
+           {activePage === "shifts" && <Shifts />}
         </section>
       </main>
     </div>

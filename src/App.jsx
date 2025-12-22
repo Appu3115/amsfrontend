@@ -5,11 +5,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { AuthProvider } from "./auth/authcontext";
-import AttendanceDashboard from "./pages/attendance/AttendanceDashboard";
-import AttendanceList from "./pages/attendance/AttendanceList";
-
-
-
+import AddDepartment from "./components/AddDepartment";
 
 function App() {
   return (
@@ -30,12 +26,11 @@ function App() {
               </ProtectedRoute>
             }
           />
-<<<<<<< HEAD
-          <Route path="/attendance/dashboard" element={<AttendanceDashboard />} />
-          <Route path="/attendance/list" element={<AttendanceList />} />
-=======
 
-          {/* Manager + Employee */}
+         <Route path="/addDepartments" element={<AddDepartment/>}/>
+        
+
+          {/* Employee */}
           <Route
             path="/employeedashboard"
             element={
@@ -44,7 +39,6 @@ function App() {
               </ProtectedRoute>
             }
           />
->>>>>>> ed36aada56f47c7c5ef4544d895e8acf6fc9e1a9
         </Routes>
       </BrowserRouter>
     </AuthProvider>
