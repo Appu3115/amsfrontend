@@ -53,6 +53,7 @@ const Login = () => {
       login(data);
 
       const role = data.role?.toUpperCase();
+      localStorage.setItem("role", role);
       console.log("🔐 Logged-in role:", role);
 
       if (role === "ADMIN") {
