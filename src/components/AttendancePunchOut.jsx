@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { punchOut } from "../api/attendanceApi";
-import "../styles/Login.css";
+import "../styles/AttendancePunchForm.css"; // ✅ SAME CSS
 
-function PunchOut() {
+export default function AttendancePunchOut({ onSuccess }) {
   const [employeeId, setEmployeeId] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -14,44 +14,30 @@ function PunchOut() {
 
     try {
       setLoading(true);
-      const res = await punchOut(employeeId);
-      alert("Logout successful");
-      console.log("Logout response:", res.data);
-    } catch (err) {
-      const msg =
-        err.response?.data ||
-        err.message ||
-        "Logout failed";
+      await punchOut(employeeId);
+      alert("Punch Out successful");
+      props.onSuccess && props.onSuccess();
 
-      alert(msg);
+    } catch (e) {
+      alert(e.response?.data || "Punch Out failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h2>Punch Out</h2>
+    <div className="punch-form">
+      <label>Employee ID</label>
+      <input
+        type="text"
+        placeholder="Enter Employee ID"
+        value={employeeId}
+        onChange={(e) => setEmployeeId(e.target.value)}
+      />
 
-        <input
-          type="text"
-          placeholder="Employee ID"
-          value={employeeId}
-          onChange={(e) => setEmployeeId(e.target.value)}
-        />
-
-        <button
-          type="button"
-          className="login-btn"
-          onClick={handlePunchOut}
-          disabled={loading}
-        >
-          {loading ? "Logging out..." : "Punch Out"}
-        </button>
-      </div>
+      <button onClick={handlePunchOut} disabled={loading}>
+        {loading ? "Punching Out..." : "Punch Out"}
+      </button>
     </div>
   );
 }
-
-export default PunchOut;

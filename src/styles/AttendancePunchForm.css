@@ -1,0 +1,37 @@
+.punch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.punch-form label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.punch-form input {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.punch-form input:focus {
+  outline: none;
+  border-color: #ff7a18;
+}
+
+.punch-form button {
+  background: linear-gradient(135deg, #ff7a18, #ff9f45);
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.punch-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

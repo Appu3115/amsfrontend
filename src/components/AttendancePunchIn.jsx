@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { punchIn } from "../api/attendanceApi";
-import "../styles/Login.css";
+import "../styles/AttendancePunchForm.css"; // ✅ IMPORTANT
 
-const PunchIn = () => {
+export default function AttendancePunchIn({ onSuccess }) {
   const [employeeId, setEmployeeId] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -14,45 +14,30 @@ const PunchIn = () => {
 
     try {
       setLoading(true);
-      const res = await punchIn(employeeId);
+      await punchIn(employeeId);
       alert("Punch In successful");
-      console.log("Punch In response:", res.data);
-    } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data ||
-        err.message ||
-        "Punch In failed";
+      props.onSuccess && props.onSuccess();
 
-      alert(msg);
+    } catch (e) {
+      alert(e.response?.data || "Punch In failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h2>Punch In</h2>
+    <div className="punch-form">
+      <label>Employee ID</label>
+      <input
+        type="text"
+        placeholder="Enter Employee ID"
+        value={employeeId}
+        onChange={(e) => setEmployeeId(e.target.value)}
+      />
 
-        <input
-          type="text"
-          placeholder="Employee ID"
-          value={employeeId}
-          onChange={(e) => setEmployeeId(e.target.value)}
-        />
-
-        <button
-          type="button"
-          className="login-btn"
-          onClick={handlePunchIn}
-          disabled={loading}
-        >
-          {loading ? "Punching In..." : "Punch In"}
-        </button>
-      </div>
+      <button onClick={handlePunchIn} disabled={loading}>
+        {loading ? "Punching In..." : "Punch In"}
+      </button>
     </div>
   );
-};
-
-export default PunchIn;
+}

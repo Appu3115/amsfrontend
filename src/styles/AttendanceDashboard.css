@@ -98,8 +98,9 @@ table {
 }
 
 th {
-  background: #fff7ed;
+  background:  #eb7e30;
   padding: 14px;
+  color: white;
   text-align: center;
 }
 
@@ -151,3 +152,4 @@ tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
