@@ -30,7 +30,7 @@ const AdminDashboard = () => {
     <div className="admin-container">
       {/* ===== Sidebar ===== */}
       <aside className="sidebar">
-        <h2 className="logo">AMS</h2>
+        <h2 className="logo">AMS Admin</h2>
 
         <nav className="sidebar-nav">
           <button

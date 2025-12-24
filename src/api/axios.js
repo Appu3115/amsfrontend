@@ -2,10 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "http://localhost:8080",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: false, // IMPORTANT for JWT header-based auth
+  withCredentials: false, // JWT via Authorization header
 });
 
 /* ================= REQUEST INTERCEPTOR ================= */
@@ -14,14 +11,11 @@ api.interceptors.request.use(
     const token = sessionStorage.getItem("token");
 
     if (token) {
-      // Ensure headers object exists
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // 🔍 TEMP DEBUG (remove later)
-    // console.log("AUTH HEADER →", config.headers.Authorization);
-
+    // ❌ DO NOT set Content-Type here
     return config;
   },
   (error) => Promise.reject(error)

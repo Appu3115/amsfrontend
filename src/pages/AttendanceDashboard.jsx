@@ -1,16 +1,13 @@
-
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDepartmentWiseAttendance } from "../api/attendanceApi";
 import "../styles/AttendanceDashboard.css";
 
-
-
 export default function AttendanceDashboard() {
   const navigate = useNavigate();
 
   const [deptAttendance, setDeptAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState({
     total: 0,
     present: 0,
@@ -18,24 +15,29 @@ export default function AttendanceDashboard() {
     absent: 0,
   });
 
-  useEffect(() => {
-    loadDepartmentWiseAttendance();
-  }, []);
-
+  // ================================
+  // Load department-wise attendance
+  // ================================
   const loadDepartmentWiseAttendance = async () => {
     try {
+      setLoading(true);
+
       const res = await getDepartmentWiseAttendance();
-      const data = res.data || [];
+
+      // ✅ Safe response handling
+      const data = res?.data?.data || res?.data || [];
+
+      console.log("Department Attendance:", data);
 
       setDeptAttendance(data);
 
-      
+      // ✅ Safe summary calculation
       const calculatedSummary = data.reduce(
         (acc, dept) => {
-          acc.total += dept.totalEmployees;
-          acc.present += dept.presentCount;
-          acc.late += dept.lateCount;
-          acc.absent += dept.absentCount;
+          acc.total += dept?.totalEmployees || 0;
+          acc.present += dept?.presentCount || 0;
+          acc.late += dept?.lateCount || 0;
+          acc.absent += dept?.absentCount || 0;
           return acc;
         },
         { total: 0, present: 0, late: 0, absent: 0 }
@@ -43,38 +45,55 @@ export default function AttendanceDashboard() {
 
       setSummary(calculatedSummary);
     } catch (err) {
-      console.error("Failed to load department-wise attendance");
+      console.error("❌ Failed to load department-wise attendance", err);
+      setDeptAttendance([]);
+      setSummary({ total: 0, present: 0, late: 0, absent: 0 });
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDepartmentWiseAttendance();
+  }, []);
 
   return (
     <div className="dashboard">
 
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
       <div className="dashboard-header">
         <h1>Attendance Dashboard</h1>
         <span className="subtitle">Today’s overview</span>
       </div>
 
-      {/* QUICK ACTIONS */}
+      {/* ================= QUICK ACTIONS ================= */}
       <div className="quick-actions">
-        <div className="action-card" onClick={() => navigate("/attendance/punch-in")}>
+        <div
+          className="action-card"
+          onClick={() => navigate("/attendance/punch-in")}
+        >
           <h3>Punch In</h3>
           <p>Employee login</p>
         </div>
 
-        <div className="action-card" onClick={() => navigate("/attendance/punch-out")}>
+        <div
+          className="action-card"
+          onClick={() => navigate("/attendance/punch-out")}
+        >
           <h3>Punch Out</h3>
           <p>Employee logout</p>
         </div>
 
-        <div className="action-card" onClick={() => navigate("/attendance/list")}>
+        <div
+          className="action-card"
+          onClick={() => navigate("/attendance/list")}
+        >
           <h3>Attendance List</h3>
           <p>View records</p>
         </div>
       </div>
 
-      {/* SUMMARY */}
+      {/* ================= SUMMARY ================= */}
       <h2 className="section-title">Attendance Summary</h2>
 
       <div className="summary-grid">
@@ -99,7 +118,7 @@ export default function AttendanceDashboard() {
         </div>
       </div>
 
-      {/* DEPARTMENT TABLE */}
+      {/* ================= DEPARTMENT TABLE ================= */}
       <h2 className="section-title">Department-wise Attendance</h2>
 
       <div className="table-card">
@@ -114,18 +133,38 @@ export default function AttendanceDashboard() {
             </tr>
           </thead>
           <tbody>
-            {deptAttendance.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan="5" className="no-data">No data available</td>
+                <td colSpan="5" className="no-data">
+                  Loading attendance...
+                </td>
+              </tr>
+            ) : deptAttendance.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="no-data">
+                  No data available
+                </td>
               </tr>
             ) : (
-              deptAttendance.map((d, i) => (
-                <tr key={i}>
+              deptAttendance.map((d) => (
+                <tr key={d.departmentId || d.departmentName}>
                   <td className="dept-name">{d.departmentName}</td>
-                  <td>{d.totalEmployees}</td>
-                  <td><span className="badge present">{d.presentCount}</span></td>
-                  <td><span className="badge late">{d.lateCount}</span></td>
-                  <td><span className="badge absent">{d.absentCount}</span></td>
+                  <td>{d.totalEmployees || 0}</td>
+                  <td>
+                    <span className="badge present">
+                      {d.presentCount || 0}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge late">
+                      {d.lateCount || 0}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge absent">
+                      {d.absentCount || 0}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}
