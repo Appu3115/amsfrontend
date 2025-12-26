@@ -8,14 +8,12 @@ export const AuthProvider = ({ children }) => {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  const login = (data) => {
-    sessionStorage.setItem("token", data.token);
-    sessionStorage.setItem("user", JSON.stringify(data));
-    setUser(data);
+  const login = (userData) => {
+    sessionStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
   };
 
   const logout = () => {
-    sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
     setUser(null);
   };

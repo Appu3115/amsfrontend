@@ -1,7 +1,7 @@
 import AddDepartment from "../components/AddDepartment";
 import Shifts from "../components/Shifts";
 import { useState } from "react";
-import AttendanceDashboard from "./AttendanceDashboard"; // ✅ already imported
+import AllEmployee from "../components/AllEmployee";
 
 import {
   FaTachometerAlt,
@@ -41,10 +41,14 @@ const AdminDashboard = () => {
             <span className="link-text">Dashboard</span>
           </button>
 
-          <button className="nav-link">
-            <FaUsers className="icon" />
-            <span className="link-text">Employees</span>
-          </button>
+        <button
+  className={`nav-link ${activePage === "employees" ? "active" : ""}`}
+  onClick={() => setActivePage("employees")}
+>
+  <FaUsers className="icon" />
+  <span className="link-text">Employees</span>
+</button>
+
 
           <button
             className={`nav-link ${activePage === "departments" ? "active" : ""}`}
@@ -121,6 +125,9 @@ const AdminDashboard = () => {
 
           {/* ✅ ATTENDANCE DASHBOARD */}
           {activePage === "attendance" && <AttendanceDashboard />}
+          {/* ===== Employees ===== */}
+           {activePage === "employees" && <AllEmployee />}
+
         </section>
       </main>
     </div>

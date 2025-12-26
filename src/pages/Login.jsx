@@ -1,7 +1,6 @@
-import { useState,} from "react";
-import axios from "axios";
-import useAuth from "../auth/useAuth";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../api/axios"; // ✅ axios instance
 import "../styles/Login.css";
 
 const Login = () => {
@@ -14,10 +13,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { login } = useAuth();
   const navigate = useNavigate();
-
-
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,32 +25,14 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    console.log("➡️ Login form data:", form);
-
     try {
-      console.log("➡️ Sending login request to backend...");
-
-      const res = await axios.post(
-        "http://localhost:8080/user/login",
-        form,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("✅ Full API response:", res);
-      console.log("✅ Response data:", res.data);
-
+      const res = await api.post("/user/login", form);
       const data = res.data;
 
-      // store user + token
-      login(data);
+      // ✅ store logged-in user
+      sessionStorage.setItem("user", JSON.stringify(data));
 
       const role = data.role?.toUpperCase();
-      localStorage.setItem("role", role);
-      console.log("🔐 Logged-in role:", role);
 
       if (role === "ADMIN") {
         navigate("/admindashboard");
@@ -62,22 +40,14 @@ const Login = () => {
         navigate("/employeedashboard");
       }
     } catch (err) {
-      console.error("❌ Login error object:", err);
-
       if (err.response) {
-        console.error("❌ Status:", err.response.status);
-        console.error("❌ Backend error data:", err.response.data);
         setError(
           typeof err.response.data === "string"
             ? err.response.data
-            : "Server error"
+            : "Invalid credentials"
         );
-      } else if (err.request) {
-        console.error("❌ No response from backend:", err.request);
-        setError("Backend not responding (check server / CORS)");
       } else {
-        console.error("❌ Axios config error:", err.message);
-        setError("Unexpected error: " + err.message);
+        setError("Backend not responding");
       }
     } finally {
       setLoading(false);

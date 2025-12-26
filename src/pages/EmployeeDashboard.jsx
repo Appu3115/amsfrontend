@@ -9,6 +9,7 @@ import {
   FaUser,
   FaSignOutAlt,
 } from "react-icons/fa";
+import { FaTimeline } from "react-icons/fa6";
 
 const EmployeeDashboard = () => {
   // 🔹 Get user from sessionStorage
@@ -93,6 +94,17 @@ const EmployeeDashboard = () => {
             <span>Profile</span>
           </div>
 
+          <div className={`emp-nav-item ${
+            activeMenu === "shifts" ? "active" : ""
+          }`}
+          onClick={()=>{
+            setActiveMenu("shifts");
+            setShowLeave(false);
+          }}>
+            <FaTimeline className="emp-icon"/>
+            <span>Shifts</span>
+          </div>
+          
           <div className="emp-nav-item logout">
             <FaSignOutAlt className="emp-icon" />
             <span>Logout</span>
