@@ -1,6 +1,7 @@
 import AddDepartment from "../components/AddDepartment";
 import Shifts from "../components/Shifts";
 import { useState } from "react";
+import AttendanceDashboard from "./AttendanceDashboard"; // ✅ already imported
 
 import {
   FaTachometerAlt,
@@ -13,7 +14,6 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import "../styles/AdminDashboard.css";
-
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("dashboard");
@@ -30,11 +30,11 @@ const AdminDashboard = () => {
     <div className="admin-container">
       {/* ===== Sidebar ===== */}
       <aside className="sidebar">
-        <h2 className="logo">AMS Admin</h2>
+        <h2 className="logo">AMS</h2>
 
         <nav className="sidebar-nav">
           <button
-            className="nav-link"
+            className={`nav-link ${activePage === "dashboard" ? "active" : ""}`}
             onClick={() => setActivePage("dashboard")}
           >
             <FaTachometerAlt className="icon" />
@@ -47,7 +47,7 @@ const AdminDashboard = () => {
           </button>
 
           <button
-            className="nav-link"
+            className={`nav-link ${activePage === "departments" ? "active" : ""}`}
             onClick={() => setActivePage("departments")}
           >
             <FaBuilding className="icon" />
@@ -55,15 +55,18 @@ const AdminDashboard = () => {
           </button>
 
           <button
-  className={`nav-link ${activePage === "shifts" ? "active" : ""}`}
-  onClick={() => setActivePage("shifts")}
->
-  <FaClock className="icon" />
-  <span className="link-text">Shifts</span>
-</button>
+            className={`nav-link ${activePage === "shifts" ? "active" : ""}`}
+            onClick={() => setActivePage("shifts")}
+          >
+            <FaClock className="icon" />
+            <span className="link-text">Shifts</span>
+          </button>
 
-
-          <button className="nav-link">
+          {/* ✅ ATTENDANCE BUTTON */}
+          <button
+            className={`nav-link ${activePage === "attendance" ? "active" : ""}`}
+            onClick={() => setActivePage("attendance")}
+          >
             <FaCalendarCheck className="icon" />
             <span className="link-text">Attendance</span>
           </button>
@@ -95,7 +98,7 @@ const AdminDashboard = () => {
         </header>
 
         <section className="page-content">
-          {/* Dashboard Overview */}
+          {/* ===== Dashboard Overview ===== */}
           {activePage === "dashboard" && (
             <>
               <h2>Overview</h2>
@@ -110,9 +113,14 @@ const AdminDashboard = () => {
             </>
           )}
 
-          {/* Departments → AddDepartment Component */}
+          {/* ===== Departments ===== */}
           {activePage === "departments" && <AddDepartment />}
-           {activePage === "shifts" && <Shifts />}
+
+          {/* ===== Shifts ===== */}
+          {activePage === "shifts" && <Shifts />}
+
+          {/* ✅ ATTENDANCE DASHBOARD */}
+          {activePage === "attendance" && <AttendanceDashboard />}
         </section>
       </main>
     </div>

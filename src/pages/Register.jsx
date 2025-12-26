@@ -26,6 +26,7 @@ const Register = () => {
     departmentName: "",
     role: "EMPLOYEE",
     joinDate: "",
+    
   });
 
   const [loading, setLoading] = useState(false);
