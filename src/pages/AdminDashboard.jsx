@@ -2,7 +2,7 @@ import AddDepartment from "../components/AddDepartment";
 import Shifts from "../components/Shifts";
 import { useState } from "react";
 import AllEmployee from "../components/AllEmployee";
-
+import AllLeaveRequests from "../components/AllLeaveRequests";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -12,6 +12,7 @@ import {
   FaFileAlt,
   FaCog,
   FaSignOutAlt,
+  FaClipboardList,
 } from "react-icons/fa";
 import "../styles/AdminDashboard.css";
 
@@ -74,6 +75,13 @@ const AdminDashboard = () => {
             <FaCalendarCheck className="icon" />
             <span className="link-text">Attendance</span>
           </button>
+<button
+  className={`nav-link ${activePage === "leaves" ? "active" : ""}`}
+  onClick={() => setActivePage("leaves")}
+>
+  <FaClipboardList className="icon" />
+  <span className="link-text">Leave Requests</span>
+</button>
 
           <button className="nav-link">
             <FaFileAlt className="icon" />
@@ -123,10 +131,11 @@ const AdminDashboard = () => {
           {/* ===== Shifts ===== */}
           {activePage === "shifts" && <Shifts />}
 
-          {/* ✅ ATTENDANCE DASHBOARD */}
-          {activePage === "attendance" && <AttendanceDashboard />}
           {/* ===== Employees ===== */}
            {activePage === "employees" && <AllEmployee />}
+           {/* ===== Leave Requests ===== */}
+{activePage === "leaves" && <AllLeaveRequests />}
+
 
         </section>
       </main>

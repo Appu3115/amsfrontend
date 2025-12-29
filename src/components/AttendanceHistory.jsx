@@ -14,6 +14,29 @@ const AttendanceHistory = () => {
     fetchAttendance();
   }, []);
 
+ // 📅 Date only → 29 Dec 2025
+const formatDateOnly = (date) => {
+  if (!date) return "-";
+
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "numeric",
+    year: "numeric",
+  });
+};
+
+// ⏰ Time only → 9:15 AM
+const formatTime12H = (dateTime) => {
+  if (!dateTime) return "-";
+
+  return new Date(dateTime).toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+
   const fetchAttendance = async () => {
     try {
       const res = await api.get("/attendance/employeeid", {
@@ -52,19 +75,30 @@ const AttendanceHistory = () => {
                 <th>Overtime (mins)</th>
               </tr>
             </thead>
-            <tbody>
-              {attendance.map((a) => (
-                <tr key={a.id}>
-                  <td>{a.attendanceDate}</td>
-                  <td>{a.login ? a.login.substring(11, 16) : "-"}</td>
-                  <td>{a.logout ? a.logout.substring(11, 16) : "-"}</td>
-                  <td>
-                    <StatusBadge status={a.status} />
-                  </td>
-                  <td>{a.overtime}</td>
-                </tr>
-              ))}
-            </tbody>
+          <tbody>
+  {attendance.map((a) => (
+    <tr key={a.id}>
+      <td>
+        {formatDateOnly(a.attendanceDate)}
+      </td>
+
+      <td>
+        {formatTime12H(a.login)}
+      </td>
+
+      <td>
+        {formatTime12H(a.logout)}
+      </td>
+
+      <td>
+        <StatusBadge status={a.status} />
+      </td>
+
+      <td>{a.overtime}</td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
         </div>
       )}

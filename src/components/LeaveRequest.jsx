@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import api from "../api/axios";
 import "../styles/LeaveRequest.css";
 
+const CLOUD_NAME = "dangvotkt";
+const UPLOAD_PRESET = "amsproject";
+
 const LeaveRequest = ({ onClose }) => {
 
-  // 🔹 get logged-in user (TEMP approach – no auth)
   const user = JSON.parse(sessionStorage.getItem("user"));
   const employeeId = user?.employeeId;
 
@@ -22,7 +24,7 @@ const LeaveRequest = ({ onClose }) => {
   // ===== Handlers =====
 
   const handleChange = (e) => {
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -30,6 +32,29 @@ const LeaveRequest = ({ onClose }) => {
 
   const handleFileChange = (e) => {
     setFiles(Array.from(e.target.files));
+  };
+
+  // 🔼 Upload single file to Cloudinary
+  const uploadToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+
+    const result = await res.json();
+
+    if (!result.secure_url) {
+      throw new Error("Cloud upload failed");
+    }
+
+    return result.secure_url;
   };
 
   const handleSubmit = async (e) => {
@@ -44,54 +69,39 @@ const LeaveRequest = ({ onClose }) => {
     }
 
     try {
-      // JSON payload
-      const leaveData = {
+      // 📤 Upload files first
+      let proofUrls = [];
+
+      if (files.length > 0) {
+        proofUrls = await Promise.all(
+          files.map(file => uploadToCloudinary(file))
+        );
+      }
+
+      // 📦 Send JSON to backend
+      const payload = {
         leaveType: form.leaveType,
         reason: form.reason,
         startDate: form.startDate,
         endDate: form.endDate,
+        proofUrls,
       };
 
-      const formData = new FormData();
-
-      // attach JSON as Blob
-      formData.append(
-        "leave",
-        new Blob([JSON.stringify(leaveData)], {
-          type: "application/json",
-        })
-      );
-
-      // attach files (optional, multiple)
-      if (files.length > 0) {
-        files.forEach((file) => {
-          formData.append("files", file);
-        });
-      }
-
-      // 🚨 DO NOT set Content-Type manually
       await api.post(
         `/leave/applyleave?employeeId=${employeeId}`,
-        formData,{
-          headers: {
-  "Content-Type": "multipart/form-data"
-}
-
-        }
+        payload
       );
 
       alert("Leave applied successfully");
       onClose();
 
     } catch (err) {
-      console.error("Apply leave error:", err.response?.data);
-
-      const msg =
-        err.response?.data?.message ||
+      console.error(err);
+      setError(
         err.response?.data ||
-        "Failed to apply leave. Please try again.";
-
-      setError(msg);
+        err.message ||
+        "Failed to apply leave"
+      );
     } finally {
       setLoading(false);
     }
@@ -107,6 +117,7 @@ const LeaveRequest = ({ onClose }) => {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+
           <label>Leave Type</label>
           <select
             name="leaveType"
@@ -179,6 +190,7 @@ const LeaveRequest = ({ onClose }) => {
               {loading ? "Submitting..." : "Apply Leave"}
             </button>
           </div>
+
         </form>
       </div>
     </div>

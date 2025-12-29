@@ -19,7 +19,7 @@ const WeeklyAttendanceChart = ({ attendance }) => {
   });
 
   return (
-    <div style={{ height: 280 }}>
+    <div style={{ height: 300 }}>
       <h4>📅 Weekly Attendance</h4>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={last7Days}>
