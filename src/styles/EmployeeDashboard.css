@@ -223,3 +223,48 @@ body {
 .emp-icon {
   font-size: 16px;
 }
+/* ===== Charts Section ===== */
+.emp-charts {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.emp-chart-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px 16px 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.emp-chart-body {
+  flex: 1;
+}
+
+/* ===== Pie Section ===== */
+.emp-pie-wrapper {
+  margin-top: 24px;
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  height: 420px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .emp-charts {
+    grid-template-columns: 1fr;
+  }
+}

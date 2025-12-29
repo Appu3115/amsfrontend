@@ -1,8 +1,12 @@
 import React, { useState } from "react";
-import api from "../api/axios"; // interceptor-based axios
+import api from "../api/axios";
 import "../styles/LeaveRequest.css";
 
 const LeaveRequest = ({ onClose }) => {
+
+  // 🔹 get logged-in user (TEMP approach – no auth)
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const employeeId = user?.employeeId;
 
   const [form, setForm] = useState({
     leaveType: "",
@@ -33,8 +37,14 @@ const LeaveRequest = ({ onClose }) => {
     setError("");
     setLoading(true);
 
+    if (!employeeId) {
+      setError("Employee not logged in");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // 🔹 Backend expects LeaveRequest JSON as "leave"
+      // JSON payload
       const leaveData = {
         leaveType: form.leaveType,
         reason: form.reason,
@@ -44,7 +54,7 @@ const LeaveRequest = ({ onClose }) => {
 
       const formData = new FormData();
 
-      // Attach JSON part
+      // attach JSON as Blob
       formData.append(
         "leave",
         new Blob([JSON.stringify(leaveData)], {
@@ -52,27 +62,36 @@ const LeaveRequest = ({ onClose }) => {
         })
       );
 
-      // Attach files (optional)
+      // attach files (optional, multiple)
       if (files.length > 0) {
         files.forEach((file) => {
           formData.append("files", file);
         });
       }
 
-      // ❗ Do NOT set Content-Type manually
-      await api.post("/leave/applyleave", formData);
+      // 🚨 DO NOT set Content-Type manually
+      await api.post(
+        `/leave/applyleave?employeeId=${employeeId}`,
+        formData,{
+          headers: {
+  "Content-Type": "multipart/form-data"
+}
+
+        }
+      );
 
       alert("Leave applied successfully");
       onClose();
 
     } catch (err) {
-      console.error("Apply leave error:", err);
+      console.error("Apply leave error:", err.response?.data);
 
-      // Backend sends String messages
-      setError(
+      const msg =
+        err.response?.data?.message ||
         err.response?.data ||
-        "Failed to apply leave. Please try again."
-      );
+        "Failed to apply leave. Please try again.";
+
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -88,7 +107,6 @@ const LeaveRequest = ({ onClose }) => {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit}>
-
           <label>Leave Type</label>
           <select
             name="leaveType"
@@ -99,7 +117,7 @@ const LeaveRequest = ({ onClose }) => {
             <option value="">Select</option>
             <option value="CASUAL">Casual</option>
             <option value="SICK">Sick</option>
-            <option value="ANNUAL">Annual</option>
+            <option value="EARNED">Earned</option>
           </select>
 
           <label>Reason</label>
@@ -111,8 +129,8 @@ const LeaveRequest = ({ onClose }) => {
           >
             <option value="">Select</option>
             <option value="PERSONAL">Personal</option>
-            <option value="MEDICAL">Medical</option>
             <option value="FAMILY">Family</option>
+            <option value="FEVER">Fever</option>
           </select>
 
           <div className="date-row">
@@ -161,7 +179,6 @@ const LeaveRequest = ({ onClose }) => {
               {loading ? "Submitting..." : "Apply Leave"}
             </button>
           </div>
-
         </form>
       </div>
     </div>

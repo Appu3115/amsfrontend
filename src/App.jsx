@@ -6,6 +6,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import AddDepartment from "./components/AddDepartment";
 import AllEmployee from "./components/AllEmployee";
+import AttendanceHistory from "./components/AttendanceHistory";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
 
         <Route path="/addDepartments" element={<AddDepartment />} />
         <Route path="/allemployees" element={<AllEmployee />} />
+        <Route path="/employee/attendance" element={<AttendanceHistory />} />
 
       </Routes>
     </BrowserRouter>
