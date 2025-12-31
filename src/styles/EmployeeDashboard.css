@@ -7,8 +7,12 @@
   --muted: #6b7280;
   --bg: #f9fafb;
   --border: #e5e7eb;
+  --green: #16a34a;
+  --red: #dc2626;
+  --yellow: #f59e0b;
 }
 
+/* ================= Reset ================= */
 * {
   box-sizing: border-box;
 }
@@ -61,14 +65,13 @@ body {
   border-radius: 10px;
   color: #e5e7eb;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .emp-nav-item:hover {
   background: var(--dark-light);
 }
 
-/* Active */
 .emp-nav-item.active {
   background: var(--orange-light);
   color: var(--orange-dark);
@@ -90,10 +93,6 @@ body {
   color: #fff;
 }
 
-.emp-nav-item.logout .emp-icon {
-  color: #f87171;
-}
-
 /* ================= Main ================= */
 .emp-main {
   margin-left: 240px;
@@ -112,16 +111,8 @@ body {
   justify-content: space-between;
   padding: 0 24px;
   position: fixed;
-  top: 0;
-  left: 240px;
-  right: 0;
+  inset: 0 0 auto 240px;
   z-index: 10;
-}
-
-.emp-navbar h3 {
-  margin: 0;
-  font-weight: 600;
-  color: var(--dark);
 }
 
 .emp-user {
@@ -154,19 +145,49 @@ body {
 /* ================= Punch Card ================= */
 .emp-punch-card {
   background: white;
-  padding: 22px 24px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.07);
   margin-bottom: 24px;
+  max-width: 520px;
+  position: relative;
 }
 
 .emp-punch-card h3 {
-  margin: 0 0 14px;
-  font-size: 16px;
+  margin: 0 0 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--dark);
 }
 
+/* ================= Status Badge ================= */
+.emp-status-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-present {
+  background: #dcfce7;
+  color: var(--green);
+}
+
+.status-late {
+  background: #fef3c7;
+  color: var(--yellow);
+}
+
+.status-wfh {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+/* ================= Punch Times ================= */
 .emp-punch-times {
   display: flex;
   gap: 28px;
@@ -179,48 +200,86 @@ body {
   color: var(--muted);
 }
 
-/* Buttons */
+/* ================= Live Timer ================= */
+.emp-timer {
+  margin: 14px 0 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: var(--green);
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.3); }
+  70% { box-shadow: 0 0 0 10px rgba(22,163,74,0); }
+  100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+}
+
+/* ================= WFH Toggle ================= */
+.wfh-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--dark);
+  margin-bottom: 14px;
+}
+
+.wfh-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--orange);
+}
+
+/* ================= Buttons ================= */
 .punch-btn {
-  padding: 10px 26px;
-  border-radius: 10px;
+  padding: 11px 28px;
+  border-radius: 12px;
   border: none;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .punch-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
 }
 
 .punch-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 .punch-in {
-  background: #16a34a;
+  background: var(--green);
   color: white;
 }
 
 .punch-out {
-  background: #dc2626;
+  background: var(--red);
   color: white;
 }
 
+/* ================= Messages ================= */
 .punch-msg {
-  margin-bottom: 10px;
+  margin-top: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: #dc2626;
+  color: var(--red);
 }
 
 .punch-complete {
+  margin-top: 10px;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--green);
 }
 
 /* ================= Charts ================= */
@@ -231,28 +290,12 @@ body {
   gap: 24px;
 }
 
-.emp-chart-card {
-  background: white;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-  height: 360px;
-  display: flex;
-  flex-direction: column;
-}
-
-.emp-chart-body {
-  flex: 1;
-}
-
-/* ================= Pie ================= */
+.emp-chart-card,
 .emp-pie-wrapper {
-  margin-top: 24px;
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-  height: 420px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.07);
 }
 
 /* ================= Icons ================= */
@@ -270,4 +313,34 @@ body {
     flex-direction: column;
     gap: 6px;
   }
+
+  .emp-punch-card {
+    max-width: 100%;
+  }
+}
+.emp-chart-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+
+  height: 360px;          /* ✅ REQUIRED */
+  min-height: 360px;     /* ✅ REQUIRED */
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-chart-card h4 {
+  margin-bottom: 8px;
+}
+
+.emp-pie-wrapper {
+  margin-top: 24px;
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+
+  height: 420px;         /* ✅ REQUIRED */
+  min-height: 420px;    /* ✅ REQUIRED */
 }

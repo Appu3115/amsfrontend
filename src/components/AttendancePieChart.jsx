@@ -1,37 +1,49 @@
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
 } from "recharts";
 
-const COLORS = ["#22c55e", "#f97316", "#ef4444"];
+const COLORS = ["#16a34a", "#dc2626"];
 
-const AttendancePieChart = ({ attendance }) => {
-  const count = status =>
-    attendance.filter(a => a.status === status).length;
+const AttendancePieChart = ({ attendance = [] }) => {
+  if (!Array.isArray(attendance) || attendance.length === 0) {
+    return <p>No attendance data</p>;
+  }
+
+  const present = attendance.filter((a) => a.logout).length;
+  const absent = attendance.length - present;
 
   const data = [
-    { name: "Present", value: count("PRESENT") },
-    { name: "Late", value: count("LATE") },
-    { name: "Absent", value: count("ABSENT") },
+    { name: "Present", value: present },
+    { name: "Absent", value: absent },
   ];
 
   return (
-    <div style={{ height: 300 }}>
-      <h4>🥧 Attendance Overview</h4>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            outerRadius={100}
-            label
-          >
-            {data.map((_, index) => (
-              <Cell key={index} fill={COLORS[index]} />
-            ))}
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      </ResponsiveContainer>
+    <div style={{ width: "100%", height: "100%" }}>
+      <h4 style={{ marginBottom: 12 }}>📊 Attendance Summary</h4>
+
+      <div style={{ width: "100%", height: "300px" }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              label
+            >
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

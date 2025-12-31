@@ -19,14 +19,24 @@ import {
 } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";
 
-/* ===== Helpers ===== */
-const formatTime12H = (dateTime) => {
-  if (!dateTime) return "-";
-  return new Date(dateTime).toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+/* ================= Helpers ================= */
+const formatTime12H = (dateTime) =>
+  dateTime
+    ? new Date(dateTime).toLocaleTimeString("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "-";
+
+const formatDuration = (seconds) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(
+    2,
+    "0"
+  )}:${String(s).padStart(2, "0")}`;
 };
 
 const EmployeeDashboard = () => {
@@ -45,31 +55,61 @@ const EmployeeDashboard = () => {
 
   const [punchLoading, setPunchLoading] = useState(false);
   const [punchMsg, setPunchMsg] = useState("");
+  const [workFromHome, setWorkFromHome] = useState(false);
+
+  const [runningSeconds, setRunningSeconds] = useState(0);
 
   /* ================= Fetch Attendance ================= */
   const fetchAttendance = async () => {
     try {
-      const res = await api.get("/attendance/employeeid", {
-        params: { EmployeeId: employeeId },
+      const res = await api.get("/attendance/fetch", {
+        params: { employeeId },
       });
 
-      const data = res.data || [];
+      const data = Array.isArray(res.data) ? res.data : [];
       setAttendance(data);
 
       const today = new Date().toISOString().split("T")[0];
-      const todayRecord = data.find(
-        (a) => a.attendanceDate === today
+      setTodayAttendance(
+        data.find((a) => a.attendanceDate === today) || null
       );
-
-      setTodayAttendance(todayRecord || null);
     } catch (err) {
       console.error("Attendance fetch failed", err);
     }
   };
 
   useEffect(() => {
-    fetchAttendance();
-  }, []);
+    if (employeeId) fetchAttendance();
+  }, [employeeId]);
+
+  /* ================= Auto Refresh (30s) ================= */
+  useEffect(() => {
+    if (!employeeId) return;
+
+    const interval = setInterval(() => {
+      if (!punchLoading) fetchAttendance();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [employeeId, punchLoading]);
+
+  /* ================= Timer ================= */
+  useEffect(() => {
+    if (!todayAttendance || todayAttendance.logout) {
+      setRunningSeconds(0);
+      return;
+    }
+
+    const loginTime = new Date(todayAttendance.login).getTime();
+
+    const interval = setInterval(() => {
+      setRunningSeconds(
+        Math.floor((Date.now() - loginTime) / 1000)
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [todayAttendance]);
 
   /* ================= Punch In ================= */
   const handlePunchIn = async () => {
@@ -78,13 +118,15 @@ const EmployeeDashboard = () => {
       setPunchMsg("");
 
       await api.post("/attendance/login", null, {
-        params: { EmployeeId: employeeId },
+        params: { employeeId, workFromHome },
       });
 
       setPunchMsg("✅ Punch In successful");
+      setWorkFromHome(false);
       fetchAttendance();
     } catch (err) {
       setPunchMsg(err.response?.data || "Punch In failed");
+      fetchAttendance();
     } finally {
       setPunchLoading(false);
     }
@@ -103,7 +145,6 @@ const EmployeeDashboard = () => {
       setPunchMsg("✅ Punch Out successful");
       fetchAttendance();
     } catch (err) {
-      // 🔒 backend-controlled restriction message
       setPunchMsg(err.response?.data || "Punch Out failed");
     } finally {
       setPunchLoading(false);
@@ -117,53 +158,28 @@ const EmployeeDashboard = () => {
         <div className="emp-logo">AMS Employee</div>
 
         <nav className="emp-nav">
-          <div
-            className={`emp-nav-item ${activeMenu === "dashboard" ? "active" : ""}`}
-            onClick={() => { setActiveMenu("dashboard"); setShowLeave(false); }}
-          >
-            <FaHome className="emp-icon" />
-            <span>Dashboard</span>
-          </div>
-
-          <div
-            className={`emp-nav-item ${activeMenu === "attendance" ? "active" : ""}`}
-            onClick={() => { setActiveMenu("attendance"); setShowLeave(false); }}
-          >
-            <FaCalendarCheck className="emp-icon" />
-            <span>Attendance</span>
-          </div>
-
-          <div
-            className={`emp-nav-item ${activeMenu === "applyLeave" ? "active" : ""}`}
-            onClick={() => { setActiveMenu("applyLeave"); setShowLeave(true); }}
-          >
-            <FaRegCalendarPlus className="emp-icon" />
-            <span>Apply Leave</span>
-          </div>
-
-          <div
-            className={`emp-nav-item ${activeMenu === "history" ? "active" : ""}`}
-            onClick={() => { setActiveMenu("history"); setShowLeave(false); }}
-          >
-            <FaHistory className="emp-icon" />
-            <span>Leave History</span>
-          </div>
-
-          <div
-            className={`emp-nav-item ${activeMenu === "profile" ? "active" : ""}`}
-            onClick={() => { setActiveMenu("profile"); setShowLeave(false); }}
-          >
-            <FaUser className="emp-icon" />
-            <span>Profile</span>
-          </div>
-
-          <div
-            className={`emp-nav-item ${activeMenu === "shifts" ? "active" : ""}`}
-            onClick={() => { setActiveMenu("shifts"); setShowLeave(false); }}
-          >
-            <FaTimeline className="emp-icon" />
-            <span>Shifts</span>
-          </div>
+          {[
+            ["dashboard", "Dashboard", <FaHome />],
+            ["attendance", "Attendance", <FaCalendarCheck />],
+            ["applyLeave", "Apply Leave", <FaRegCalendarPlus />],
+            ["history", "Leave History", <FaHistory />],
+            ["profile", "Profile", <FaUser />],
+            ["shifts", "Shifts", <FaTimeline />],
+          ].map(([key, label, icon]) => (
+            <div
+              key={key}
+              className={`emp-nav-item ${
+                activeMenu === key ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveMenu(key);
+                setShowLeave(key === "applyLeave");
+              }}
+            >
+              <span className="emp-icon">{icon}</span>
+              <span>{label}</span>
+            </div>
+          ))}
 
           <div className="emp-nav-item logout">
             <FaSignOutAlt className="emp-icon" />
@@ -185,50 +201,63 @@ const EmployeeDashboard = () => {
         </header>
 
         <main className="emp-content">
-          {/* ================= DASHBOARD ================= */}
           {activeMenu === "dashboard" && (
             <>
-              {/* ===== Punch Card ===== */}
+              {/* ================= Punch Card ================= */}
               <div className="emp-punch-card">
                 <h3>Today Attendance</h3>
 
-                {todayAttendance && (
-                  <div className="emp-punch-times">
-                    <p><strong>Login:</strong> {formatTime12H(todayAttendance.login)}</p>
-                    <p><strong>Logout:</strong> {formatTime12H(todayAttendance.logout)}</p>
-                  </div>
+                {todayAttendance && !todayAttendance.logout && (
+                  <>
+                    <p>
+                      <strong>Login:</strong>{" "}
+                      {formatTime12H(todayAttendance.login)}
+                    </p>
+                    <div className="emp-timer">
+                      ⏱ {formatDuration(runningSeconds)}
+                    </div>
+                    <button
+                      className="punch-btn punch-out"
+                      onClick={handlePunchOut}
+                      disabled={punchLoading}
+                    >
+                      Punch Out
+                    </button>
+                  </>
+                )}
+
+                {!todayAttendance && (
+                  <>
+                    <label className="wfh-toggle">
+                      <input
+                        type="checkbox"
+                        checked={workFromHome}
+                        onChange={(e) =>
+                          setWorkFromHome(e.target.checked)
+                        }
+                      />
+                      Work From Home
+                    </label>
+                    <button
+                      className="punch-btn punch-in"
+                      onClick={handlePunchIn}
+                      disabled={punchLoading}
+                    >
+                      Punch In
+                    </button>
+                  </>
+                )}
+
+                {todayAttendance?.logout && (
+                  <p className="punch-complete">
+                    ✅ Attendance completed
+                  </p>
                 )}
 
                 {punchMsg && <p className="punch-msg">{punchMsg}</p>}
-
-                {!todayAttendance && (
-                  <button
-                    className="punch-btn punch-in"
-                    onClick={handlePunchIn}
-                    disabled={punchLoading}
-                  >
-                    Punch In
-                  </button>
-                )}
-
-                {todayAttendance && !todayAttendance.logout && (
-                  <button
-                    className="punch-btn punch-out"
-                    onClick={handlePunchOut}
-                    disabled={punchLoading}
-                  >
-                    Punch Out
-                  </button>
-                )}
-
-                {todayAttendance && todayAttendance.logout && (
-                  <p className="punch-complete">
-                    ✅ Attendance completed for today
-                  </p>
-                )}
               </div>
 
-              {/* ===== Charts ===== */}
+              {/* ================= Charts ================= */}
               <div className="emp-charts">
                 <div className="emp-chart-card">
                   <WeeklyAttendanceChart attendance={attendance} />
@@ -245,11 +274,7 @@ const EmployeeDashboard = () => {
             </>
           )}
 
-          {/* ================= OTHER MENUS ================= */}
           {activeMenu === "attendance" && <AttendanceHistory />}
-          {activeMenu === "history" && <h2>Leave History (Coming Soon)</h2>}
-          {activeMenu === "profile" && <h2>Profile (Coming Soon)</h2>}
-          {activeMenu === "shifts" && <h2>Shift Details (Coming Soon)</h2>}
         </main>
       </div>
     </div>

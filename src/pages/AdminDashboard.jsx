@@ -3,6 +3,7 @@ import Shifts from "../components/Shifts";
 import { useState } from "react";
 import AllEmployee from "../components/AllEmployee";
 import AllLeaveRequests from "../components/AllLeaveRequests";
+import AdminAttendance from "../components/AdminAttendance";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -134,9 +135,9 @@ const AdminDashboard = () => {
           {/* ===== Employees ===== */}
            {activePage === "employees" && <AllEmployee />}
            {/* ===== Leave Requests ===== */}
-{activePage === "leaves" && <AllLeaveRequests />}
+        {activePage === "leaves" && <AllLeaveRequests />}
 
-
+         {activePage === "attendance" && <AdminAttendance />}
         </section>
       </main>
     </div>

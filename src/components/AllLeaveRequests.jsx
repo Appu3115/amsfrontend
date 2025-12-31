@@ -5,6 +5,10 @@ import "../styles/AllLeaveRequests.css";
 const AllLeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [proofs, setProofs] = useState([]);
+  const [previewUrl, setPreviewUrl] = useState(null);
+const [previewType, setPreviewType] = useState(null); // "image" | "pdf"
+
 
   useEffect(() => {
     fetchLeaves();
@@ -23,7 +27,15 @@ const AllLeaveRequests = () => {
   };
 
   if (loading) return <p>Loading leave requests...</p>;
+const formatDateOnly = (date) => {
+  if (!date) return "-";
 
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "numeric",
+    year: "numeric",
+  });
+};
   return (
     <div className="leave-admin-container">
       <h2>All Leave Requests</h2>
@@ -56,7 +68,7 @@ const AllLeaveRequests = () => {
                 <td>{leave.reason}</td>
 
                 <td>
-                  {leave.startDate} → {leave.endDate}
+                  {formatDateOnly(leave.startDate)} → {formatDateOnly(leave.endDate)}
                 </td>
 
                 <td>
@@ -66,23 +78,83 @@ const AllLeaveRequests = () => {
                 </td>
 
                 <td>
-                  {leave.proofUrls && leave.proofUrls.length > 0 ? (
-                    <a
-                      href={leave.proofUrls[0]}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View
-                    </a>
-                  ) : (
-                    "—"
-                  )}
-                </td>
+  {leave.proofUrls && leave.proofUrls.length > 0 ? (
+    <button
+      className="view-btn"
+      onClick={() => {
+        setProofs(leave.proofUrls);
+        setPreviewUrl(leave.proofUrls[0]);
+
+        const first = leave.proofUrls[0];
+        setPreviewType(first.endsWith(".pdf") ? "pdf" : "image");
+      }}
+    >
+      View ({leave.proofUrls.length})
+    </button>
+  ) : (
+    "—"
+  )}
+</td>
+
               </tr>
             ))}
           </tbody>
         </table>
+        
       )}
+      {previewUrl && (
+  <div className="preview-overlay">
+    <div className="preview-modal large">
+      <button
+        className="close-btn"
+        onClick={() => {
+          setPreviewUrl(null);
+          setProofs([]);
+        }}
+      >
+        ✖
+      </button>
+
+      <div className="preview-content">
+        {/* 📂 Proof list */}
+        <div className="proof-list">
+          {proofs.map((url, index) => (
+            <button
+              key={index}
+              className={`proof-item ${
+                previewUrl === url ? "active" : ""
+              }`}
+              onClick={() => {
+                setPreviewUrl(url);
+                setPreviewType(url.endsWith(".pdf") ? "pdf" : "image");
+              }}
+            >
+              Proof {index + 1}
+            </button>
+          ))}
+        </div>
+
+        {/* 👀 Preview area */}
+        <div className="proof-preview">
+          {previewType === "image" && (
+            <img src={previewUrl} alt="Proof" />
+          )}
+
+          {previewType === "pdf" && (
+            <iframe
+              src={previewUrl}
+              title="Proof PDF"
+              width="100%"
+              height="100%"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 };

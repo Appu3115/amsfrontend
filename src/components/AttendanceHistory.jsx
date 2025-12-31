@@ -39,7 +39,7 @@ const formatTime12H = (dateTime) => {
 
   const fetchAttendance = async () => {
     try {
-      const res = await api.get("/attendance/employeeid", {
+      const res = await api.get("/attendance/fetch", {
         params: { EmployeeId: employeeId },
       });
       setAttendance(res.data);
