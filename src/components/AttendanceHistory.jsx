@@ -11,37 +11,30 @@ const AttendanceHistory = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchAttendance();
-  }, []);
+    if (employeeId) fetchAttendance();
+  }, [employeeId]);
 
- // 📅 Date only → 29 Dec 2025
-const formatDateOnly = (date) => {
-  if (!date) return "-";
+  // 📅 Date → 31/12/2025
+  const formatDateOnly = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("en-IN");
+  };
 
-  return new Date(date).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "numeric",
-    year: "numeric",
-  });
-};
-
-// ⏰ Time only → 9:15 AM
-const formatTime12H = (dateTime) => {
-  if (!dateTime) return "-";
-
-  return new Date(dateTime).toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
-
+  // ⏰ Time → 1:11 PM
+  const formatTime12H = (dateTime) => {
+    if (!dateTime) return "-";
+    return new Date(dateTime).toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   const fetchAttendance = async () => {
     try {
-      const res = await api.get("/attendance/fetch", {
-        params: { EmployeeId: employeeId },
-      });
+      const res = await api.get(
+        `/attendance/employee/${employeeId}`
+      );
       setAttendance(res.data);
     } catch (err) {
       console.error(err);
@@ -58,7 +51,7 @@ const formatTime12H = (dateTime) => {
     <div className="attendance-container">
       <div className="attendance-header">
         <h2>Attendance History</h2>
-        <p>Track your daily login, logout, and status</p>
+        <p>Track your daily attendance & work summary</p>
       </div>
 
       {attendance.length === 0 ? (
@@ -71,33 +64,42 @@ const formatTime12H = (dateTime) => {
                 <th>Date</th>
                 <th>Login</th>
                 <th>Logout</th>
-                <th>Status</th>
+                <th>Attendance</th>
+                <th>Daily Status</th>
+                <th>Work (mins)</th>
+                <th>Break (mins)</th>
+                <th>Permission (mins)</th>
+                <th>Late (mins)</th>
                 <th>Overtime (mins)</th>
               </tr>
             </thead>
-          <tbody>
-  {attendance.map((a) => (
-    <tr key={a.id}>
-      <td>
-        {formatDateOnly(a.attendanceDate)}
-      </td>
 
-      <td>
-        {formatTime12H(a.login)}
-      </td>
+            <tbody>
+              {attendance.map((a, index) => (
+                <tr
+                  key={index}
+                  className={a.attendanceStatus?.toLowerCase()}
+                >
+                  <td>{formatDateOnly(a.attendanceDate)}</td>
+                  <td>{formatTime12H(a.login)}</td>
+                  <td>{formatTime12H(a.logout)}</td>
 
-      <td>
-        {formatTime12H(a.logout)}
-      </td>
+                  <td>
+                    <StatusBadge status={a.attendanceStatus} />
+                  </td>
 
-      <td>
-        <StatusBadge status={a.status} />
-      </td>
+                  <td>
+                    <StatusBadge status={a.dailyStatus} />
+                  </td>
 
-      <td>{a.overtime}</td>
-    </tr>
-  ))}
-</tbody>
+                  <td>{formatDuration(a.totalWorkMinutes) ?? 0}</td>
+                  <td>{formatDuration(a.totalBreakMinutes) ?? 0}</td>
+                  <td>{formatDuration(a.permissionMinutes) ?? 0}</td>
+                  <td>{formatDuration(a.lateMinutes) ?? 0}</td>
+                  <td>{formatDuration(a.overtimeMinutes) ?? 0}</td>
+                </tr>
+              ))}
+            </tbody>
 
           </table>
         </div>
@@ -105,5 +107,13 @@ const formatTime12H = (dateTime) => {
     </div>
   );
 };
+const formatDuration = (minutes) => {
+  if (minutes === null || minutes === undefined) return "-";
+  if (minutes < 60) return `${minutes}m`;
 
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+};
 export default AttendanceHistory;

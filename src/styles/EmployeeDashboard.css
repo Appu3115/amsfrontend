@@ -344,3 +344,47 @@ body {
   height: 420px;         /* ✅ REQUIRED */
   min-height: 420px;    /* ✅ REQUIRED */
 }
+/* ===== Permission ===== */
+.permission-box {
+  margin-top: 14px;
+}
+
+.permission-box label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.permission-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.permission-row input {
+  width: 100px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  font-size: 14px;
+}
+
+.permission-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: var(--orange-primary);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.permission-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.permission-msg {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--green);
+}

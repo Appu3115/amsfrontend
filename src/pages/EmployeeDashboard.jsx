@@ -41,7 +41,9 @@ const formatDuration = (seconds) => {
 
 const EmployeeDashboard = () => {
   const user = JSON.parse(sessionStorage.getItem("user")) || {};
-  const employeeId = user.employeeId;
+
+
+  const employeeId = user.employeeId?.toUpperCase();
 
   const firstName = user.firstName || "Employee";
   const lastName = user.lastName || "";
@@ -59,12 +61,19 @@ const EmployeeDashboard = () => {
 
   const [runningSeconds, setRunningSeconds] = useState(0);
 
+  // Permission state
+  const [permissionMinutes, setPermissionMinutes] = useState("");
+  const [permissionLoading, setPermissionLoading] = useState(false);
+  const [permissionMsg, setPermissionMsg] = useState("");
+
   /* ================= Fetch Attendance ================= */
   const fetchAttendance = async () => {
     try {
-      const res = await api.get("/attendance/fetch", {
-        params: { employeeId },
-      });
+      if (!employeeId) return;
+
+      const res = await api.get(
+        `/attendance/employee/${employeeId}`
+      );
 
       const data = Array.isArray(res.data) ? res.data : [];
       setAttendance(data);
@@ -79,7 +88,7 @@ const EmployeeDashboard = () => {
   };
 
   useEffect(() => {
-    if (employeeId) fetchAttendance();
+    fetchAttendance();
   }, [employeeId]);
 
   /* ================= Auto Refresh (30s) ================= */
@@ -151,6 +160,36 @@ const EmployeeDashboard = () => {
     }
   };
 
+  /* ================= Permission Request ================= */
+  const handlePermissionRequest = async () => {
+    if (!permissionMinutes || permissionMinutes <= 0) {
+      setPermissionMsg("Enter valid permission minutes");
+      return;
+    }
+
+    try {
+      setPermissionLoading(true);
+      setPermissionMsg("");
+
+      await api.post("/attendance/permission", null, {
+        params: {
+          employeeId,
+          minutes: permissionMinutes,
+        },
+      });
+
+      setPermissionMsg("✅ Permission recorded");
+      setPermissionMinutes("");
+      fetchAttendance();
+    } catch (err) {
+      setPermissionMsg(
+        err.response?.data || "Permission request failed"
+      );
+    } finally {
+      setPermissionLoading(false);
+    }
+  };
+
   return (
     <div className="emp-layout">
       {/* ================= Sidebar ================= */}
@@ -203,7 +242,7 @@ const EmployeeDashboard = () => {
         <main className="emp-content">
           {activeMenu === "dashboard" && (
             <>
-              {/* ================= Punch Card ================= */}
+              {/* Punch Card */}
               <div className="emp-punch-card">
                 <h3>Today Attendance</h3>
 
@@ -213,9 +252,38 @@ const EmployeeDashboard = () => {
                       <strong>Login:</strong>{" "}
                       {formatTime12H(todayAttendance.login)}
                     </p>
+
                     <div className="emp-timer">
                       ⏱ {formatDuration(runningSeconds)}
                     </div>
+
+                    {/* Permission */}
+                    <div className="permission-box">
+                      <label>Permission (minutes)</label>
+                      <div className="permission-row">
+                        <input
+                          type="number"
+                          min="1"
+                          value={permissionMinutes}
+                          onChange={(e) =>
+                            setPermissionMinutes(e.target.value)
+                          }
+                        />
+                        <button
+                          className="permission-btn"
+                          onClick={handlePermissionRequest}
+                          disabled={permissionLoading}
+                        >
+                          {permissionLoading ? "Saving..." : "Request"}
+                        </button>
+                      </div>
+                      {permissionMsg && (
+                        <p className="permission-msg">
+                          {permissionMsg}
+                        </p>
+                      )}
+                    </div>
+
                     <button
                       className="punch-btn punch-out"
                       onClick={handlePunchOut}
@@ -257,12 +325,11 @@ const EmployeeDashboard = () => {
                 {punchMsg && <p className="punch-msg">{punchMsg}</p>}
               </div>
 
-              {/* ================= Charts ================= */}
+              {/* Charts */}
               <div className="emp-charts">
                 <div className="emp-chart-card">
                   <WeeklyAttendanceChart attendance={attendance} />
                 </div>
-
                 <div className="emp-chart-card">
                   <MonthlyAttendanceChart attendance={attendance} />
                 </div>
