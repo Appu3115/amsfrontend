@@ -4,6 +4,8 @@ import { useState } from "react";
 import AllEmployee from "../components/AllEmployee";
 import AllLeaveRequests from "../components/AllLeaveRequests";
 import AdminAttendance from "../components/AdminAttendance";
+
+
 import {
   FaTachometerAlt,
   FaUsers,
@@ -16,6 +18,7 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 import "../styles/AdminDashboard.css";
+// import AllLeaveRequests from "../components/AllLeaveRequests";
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("dashboard");
@@ -136,6 +139,7 @@ const AdminDashboard = () => {
            {activePage === "employees" && <AllEmployee />}
            {/* ===== Leave Requests ===== */}
         {activePage === "leaves" && <AllLeaveRequests />}
+
 
          {activePage === "attendance" && <AdminAttendance />}
         </section>

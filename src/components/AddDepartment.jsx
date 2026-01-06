@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios"; // ✅ USE JWT AXIOS INSTANCE
 import "../styles/AddDepartment.css";
-
+// import { getUser } from "../utils/auth";
 const AddDepartment = () => {
    
 

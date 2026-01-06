@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../api/axios"; // ✅ axios instance
+import api from "../api/axios";
 import "../styles/Login.css";
 
 const Login = () => {
@@ -29,16 +29,28 @@ const Login = () => {
       const res = await api.post("/user/login", form);
       const data = res.data;
 
-      // ✅ store logged-in user
-      sessionStorage.setItem("user", JSON.stringify(data));
-
+      // 🔐 Get role from backend response
       const role = data.role?.toUpperCase();
 
-      if (role === "ADMIN") {
-        navigate("/admindashboard");
-      } else {
-        navigate("/employeedashboard");
+      if (!role) {
+        throw new Error("Role missing in login response");
       }
+
+      // 🧹 Clear any previous sessions
+      sessionStorage.removeItem("user_admin");
+      sessionStorage.removeItem("user_employee");
+
+      // ✅ Store user with ROLE IN KEY
+      const userKey = `user_${role.toLowerCase()}`;
+      sessionStorage.setItem(userKey, JSON.stringify(data));
+
+      // 🚀 Redirect (replace kills browser back to login)
+      if (role === "ADMIN") {
+        navigate("/admindashboard", { replace: true });
+      } else {
+        navigate("/employeedashboard", { replace: true });
+      }
+
     } catch (err) {
       if (err.response) {
         setError(

@@ -9,6 +9,7 @@ import AttendancePieChart from "../components/AttendancePieChart";
 import WorkSessionControls from "../components/WorkSessionControls";
 import useActivityTracker from "../hooks/useActivityTracker";
 import api from "../api/axios";
+import { getUser } from "../utils/auth";
 
 import {
   FaHome,
@@ -20,6 +21,7 @@ import {
 } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";
 
+/* ---------- Helpers ---------- */
 const formatTime12H = (dateTime) =>
   dateTime
     ? new Date(dateTime).toLocaleTimeString("en-IN", {
@@ -40,13 +42,14 @@ const formatDuration = (seconds) => {
 };
 
 const EmployeeDashboard = () => {
-  const user = JSON.parse(sessionStorage.getItem("user")) || {};
-  const employeeId = user.employeeId?.toUpperCase();
+  const user = getUser();
+  const employeeId = user?.employeeId?.toUpperCase();
 
-  const firstName = user.firstName || "Employee";
-  const lastName = user.lastName || "";
+  const firstName = user?.firstName || "Employee";
+  const lastName = user?.lastName || "";
   const avatarLetter = firstName.charAt(0).toUpperCase();
 
+  /* ---------- State ---------- */
   const [attendance, setAttendance] = useState([]);
   const [todayAttendance, setTodayAttendance] = useState(null);
 
@@ -58,18 +61,19 @@ const EmployeeDashboard = () => {
   const [workFromHome, setWorkFromHome] = useState(false);
 
   const [runningSeconds, setRunningSeconds] = useState(0);
+  const [productiveSeconds, setProductiveSeconds] = useState(0);
 
+  // ✅ Permission
   const [permissionMinutes, setPermissionMinutes] = useState("");
   const [permissionLoading, setPermissionLoading] = useState(false);
   const [permissionMsg, setPermissionMsg] = useState("");
-
-  const [productiveSeconds, setProductiveSeconds] = useState(0);
 
   useActivityTracker(
     employeeId,
     todayAttendance && !todayAttendance.logout
   );
 
+  /* ---------- API Calls ---------- */
   const fetchProductiveTime = async () => {
     try {
       const today = new Date().toISOString().split("T")[0];
@@ -79,7 +83,7 @@ const EmployeeDashboard = () => {
       );
       setProductiveSeconds(res.data || 0);
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
   };
 
@@ -87,36 +91,24 @@ const EmployeeDashboard = () => {
     try {
       if (!employeeId) return;
       fetchProductiveTime();
+
       const res = await api.get(`/attendance/employee/${employeeId}`);
       const data = Array.isArray(res.data) ? res.data : [];
       setAttendance(data);
+
       const today = new Date().toISOString().split("T")[0];
       setTodayAttendance(
         data.find((a) => a.attendanceDate === today) || null
       );
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
   };
 
-  useEffect(() => {
-    if (todayAttendance && !todayAttendance.logout) {
-      const interval = setInterval(fetchProductiveTime, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [todayAttendance]);
-
+  /* ---------- Effects ---------- */
   useEffect(() => {
     fetchAttendance();
   }, [employeeId]);
-
-  useEffect(() => {
-    if (!employeeId) return;
-    const interval = setInterval(() => {
-      if (!punchLoading) fetchAttendance();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [employeeId, punchLoading]);
 
   useEffect(() => {
     if (!todayAttendance || todayAttendance.logout) {
@@ -132,6 +124,7 @@ const EmployeeDashboard = () => {
     return () => clearInterval(interval);
   }, [todayAttendance]);
 
+  /* ---------- Punch ---------- */
   const handlePunchIn = async () => {
     try {
       setPunchLoading(true);
@@ -142,8 +135,7 @@ const EmployeeDashboard = () => {
       setPunchMsg("Punch In successful");
       setWorkFromHome(false);
       fetchAttendance();
-    } catch (e) {
-      console.log(e)
+    } catch {
       setPunchMsg("Punch In failed");
     } finally {
       setPunchLoading(false);
@@ -159,33 +151,45 @@ const EmployeeDashboard = () => {
       });
       setPunchMsg("Punch Out successful");
       fetchAttendance();
-    } catch (e) {
-      console.log(e)
+    } catch {
       setPunchMsg("Punch Out failed");
     } finally {
       setPunchLoading(false);
     }
   };
 
-  const handlePermissionRequest = async () => {
+  /* ---------- Permission ---------- */
+  const handlePermissionRequest = async (type) => {
     if (!permissionMinutes || permissionMinutes <= 0) return;
+
     try {
       setPermissionLoading(true);
       setPermissionMsg("");
+
       await api.post("/attendance/permission", null, {
-        params: { employeeId, minutes: permissionMinutes },
+        params: {
+          employeeId,
+          minutes: permissionMinutes,
+          type, // LATE_IN | EARLY_OUT
+        },
       });
-      setPermissionMsg("Permission recorded");
+
+      setPermissionMsg(
+        type === "LATE_IN"
+          ? "Late punch-in permission recorded"
+          : "Early leave permission recorded"
+      );
+
       setPermissionMinutes("");
       fetchAttendance();
-    } catch (e) {
-      console.log(e)
-      setPermissionMsg("Permission failed");
+    } catch {
+      setPermissionMsg("Permission request failed");
     } finally {
       setPermissionLoading(false);
     }
   };
 
+  /* ---------- UI ---------- */
   return (
     <div className="emp-layout">
       <aside className="emp-sidebar">
@@ -238,46 +242,38 @@ const EmployeeDashboard = () => {
                 <div className="emp-punch-card">
                   <h3>Today Attendance</h3>
 
+                  {/* ✅ AFTER PUNCH-IN */}
                   {todayAttendance && !todayAttendance.logout && (
                     <>
-                      <p>
-                        <strong>Login:</strong>{" "}
-                        {formatTime12H(todayAttendance.login)}
-                      </p>
+                      <p><strong>Login:</strong> {formatTime12H(todayAttendance.login)}</p>
 
                       <div className="emp-timer">
-                        ⏱ {formatDuration(runningSeconds)}
+                       Working Hour ⏱ {formatDuration(runningSeconds)}
                       </div>
 
                       <WorkSessionControls />
 
                       <div className="emp-productive-time">
                         <span>Productive Time</span>
-                        <strong>
-                          {formatDuration(productiveSeconds)}
-                        </strong>
+                        <strong>{formatDuration(productiveSeconds)}</strong>
                       </div>
 
                       <div className="permission-box">
-                        <label>Permission (minutes)</label>
+                        <label>Early Leave Permission (minutes)</label>
                         <div className="permission-row">
                           <input
                             type="number"
                             value={permissionMinutes}
-                            onChange={(e) =>
-                              setPermissionMinutes(e.target.value)
-                            }
+                            onChange={(e) => setPermissionMinutes(e.target.value)}
                           />
                           <button
-                            onClick={handlePermissionRequest}
+                            onClick={() => handlePermissionRequest("EARLY_OUT")}
                             disabled={permissionLoading}
                           >
                             Request
                           </button>
                         </div>
-                        {permissionMsg && (
-                          <p>{permissionMsg}</p>
-                        )}
+                        {permissionMsg && <p>{permissionMsg}</p>}
                       </div>
 
                       <button
@@ -290,18 +286,36 @@ const EmployeeDashboard = () => {
                     </>
                   )}
 
+                  {/* ✅ BEFORE PUNCH-IN */}
                   {!todayAttendance && (
                     <>
+                      <div className="permission-box">
+                        <label>Late Punch-In Permission (minutes)</label>
+                        <div className="permission-row">
+                          <input
+                            type="number"
+                            value={permissionMinutes}
+                            onChange={(e) => setPermissionMinutes(e.target.value)}
+                          />
+                          <button
+                            onClick={() => handlePermissionRequest("LATE_IN")}
+                            disabled={permissionLoading}
+                          >
+                            Request
+                          </button>
+                        </div>
+                        {permissionMsg && <p>{permissionMsg}</p>}
+                      </div>
+
                       <label className="wfh-toggle">
                         <input
                           type="checkbox"
                           checked={workFromHome}
-                          onChange={(e) =>
-                            setWorkFromHome(e.target.checked)
-                          }
+                          onChange={(e) => setWorkFromHome(e.target.checked)}
                         />
                         Work From Home
                       </label>
+
                       <button
                         className="punch-btn punch-in"
                         onClick={handlePunchIn}
@@ -312,10 +326,7 @@ const EmployeeDashboard = () => {
                     </>
                   )}
 
-                  {todayAttendance?.logout && (
-                    <p>Attendance completed</p>
-                  )}
-
+                  {todayAttendance?.logout && <p>Attendance completed</p>}
                   {punchMsg && <p>{punchMsg}</p>}
                 </div>
               </div>

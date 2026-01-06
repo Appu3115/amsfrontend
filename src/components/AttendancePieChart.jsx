@@ -52,7 +52,7 @@ const AttendancePieChart = ({ attendance = [] }) => {
   ];
 
   return (
-    <div style={{ width: "100%", height: 320 }}>
+    <div style={{ width: "100%", height: 300 }}>
  
       <h4 style={{ marginBottom: 12 }}>
         📊 Attendance Percentage (You)

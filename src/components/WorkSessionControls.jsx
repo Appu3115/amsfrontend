@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import api from "../api/axios";
 import "../styles/WorkSessionControls.css";
-
+import { getUser } from "../utils/auth";
 const WorkSessionControls = () => {
-  const user = JSON.parse(sessionStorage.getItem("user"));
-  const employeeId = user?.employeeId;
+  const user = getUser();
+   const employeeId = user.employeeId?.toUpperCase();
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");

@@ -46,7 +46,7 @@ const MonthlyAttendanceChart = ({ attendance }) => {
   });
 
   return (
-    <div style={{ width: "100%", height: 300 }}>
+    <div style={{ width: "100%", height: 280 }}>
       <h4>📆 Monthly Attendance</h4>
 
       <ResponsiveContainer width="100%" height="100%" minWidth="0" minHeight="0">

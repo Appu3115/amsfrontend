@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import StatusBadge from "./StatusBadge";
 import "../styles/AttendanceHistory.css";
-
+import { getUser } from "../utils/auth";
 const AttendanceHistory = () => {
-  const employeeId = JSON.parse(sessionStorage.getItem("user"))?.employeeId;
+  const user = getUser();
+  const employeeId = user.employeeId?.toUpperCase();
 
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);

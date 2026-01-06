@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import api from "../api/axios";
 import "../styles/LeaveRequest.css";
-
+import { getUser } from "../utils/auth";
 const CLOUD_NAME = "dangvotkt";
 const UPLOAD_PRESET = "amsproject";
 
 const LeaveRequest = ({ onClose }) => {
 
-  const user = JSON.parse(sessionStorage.getItem("user"));
-  const employeeId = user?.employeeId;
+  const user = getUser();
+   const employeeId = user.employeeId?.toUpperCase();
 
   const [form, setForm] = useState({
     leaveType: "",
