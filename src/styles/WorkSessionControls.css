@@ -1,0 +1,100 @@
+:root {
+  --orange: #f97316;
+  --orange-dark: #ea580c;
+  --orange-light: #fff7ed;
+  --dark: #1f2937;
+  --muted: #6b7280;
+  --bg: #f9fafb;
+}
+
+.ws-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  width: 360px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-top: 5px solid var(--orange);
+}
+
+.ws-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--dark);
+}
+
+.ws-header p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.ws-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.ws-btn {
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.ws-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Break */
+.ws-break {
+  background: var(--orange-light);
+  color: var(--orange-dark);
+}
+
+.ws-break:hover {
+  background: #ffedd5;
+}
+
+/* Lunch */
+.ws-lunch {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.ws-lunch:hover {
+  background: #ffe4e6;
+}
+
+/* Resume */
+.ws-resume {
+  background: var(--orange);
+  color: white;
+}
+
+.ws-resume:hover {
+  background: var(--orange-dark);
+}
+
+/* Messages */
+.ws-success {
+  margin-top: 18px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 14px;
+}
+
+.ws-error {
+  margin-top: 18px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+}

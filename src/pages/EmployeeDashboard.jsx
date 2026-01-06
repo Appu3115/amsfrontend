@@ -6,7 +6,8 @@ import AttendanceHistory from "../components/AttendanceHistory";
 import WeeklyAttendanceChart from "../components/WeeklyAttendanceChart";
 import MonthlyAttendanceChart from "../components/MonthlyAttendanceChart";
 import AttendancePieChart from "../components/AttendancePieChart";
-
+import WorkSessionControls from "../components/WorkSessionControls";
+import useActivityTracker from "../hooks/useActivityTracker";
 import api from "../api/axios";
 
 import {
@@ -65,12 +66,34 @@ const EmployeeDashboard = () => {
   const [permissionMinutes, setPermissionMinutes] = useState("");
   const [permissionLoading, setPermissionLoading] = useState(false);
   const [permissionMsg, setPermissionMsg] = useState("");
+const [productiveSeconds, setProductiveSeconds] = useState(0);
+
+useActivityTracker(
+  employeeId,
+  todayAttendance && !todayAttendance.logout
+);
+const fetchProductiveTime = async () => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    const res = await api.get("/attendance/activity/productive-time", {
+      params: { employeeId, date: today },
+    });
+
+    setProductiveSeconds(res.data || 0);
+  } catch (err) {
+    console.log(err)
+    console.error("Productive time fetch failed");
+  }
+};
 
   /* ================= Fetch Attendance ================= */
   const fetchAttendance = async () => {
     try {
-      if (!employeeId) return;
+      // fetchProductiveTime();
 
+      if (!employeeId) return;
+ fetchProductiveTime();
       const res = await api.get(
         `/attendance/employee/${employeeId}`
       );
@@ -86,6 +109,15 @@ const EmployeeDashboard = () => {
       console.error("Attendance fetch failed", err);
     }
   };
+useEffect(() => {
+  if (todayAttendance && !todayAttendance.logout) {
+    const interval = setInterval(() => {
+      fetchProductiveTime();
+    }, 30000); // every 30 sec
+
+    return () => clearInterval(interval);
+  }
+}, [todayAttendance]);
 
   useEffect(() => {
     fetchAttendance();
@@ -256,6 +288,14 @@ const EmployeeDashboard = () => {
                     <div className="emp-timer">
                       ⏱ {formatDuration(runningSeconds)}
                     </div>
+                    {/* Work Session Controls */}
+<div style={{ marginTop: "20px" }}>
+  <WorkSessionControls />
+</div>
+<div className="emp-productive-time">
+  <span>Productive Time</span>
+  <strong>{formatDuration(productiveSeconds)}</strong>
+</div>
 
                     {/* Permission */}
                     <div className="permission-box">

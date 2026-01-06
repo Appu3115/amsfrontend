@@ -388,3 +388,19 @@ body {
   font-size: 13px;
   color: var(--green);
 }
+.emp-productive-time {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #ecfeff;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.emp-productive-time strong {
+  color: #0369a1;
+  font-weight: 600;
+}
