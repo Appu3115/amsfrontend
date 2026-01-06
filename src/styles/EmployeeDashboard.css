@@ -2,17 +2,20 @@
   --orange: #f97316;
   --orange-dark: #ea580c;
   --orange-light: #fff7ed;
+
   --dark: #1f2937;
   --dark-light: #374151;
   --muted: #6b7280;
+
   --bg: #f9fafb;
   --border: #e5e7eb;
+
   --green: #16a34a;
   --red: #dc2626;
   --yellow: #f59e0b;
 }
 
-/* ================= Reset ================= */
+/* ===== Reset ===== */
 * {
   box-sizing: border-box;
 }
@@ -23,14 +26,14 @@ body {
   background: var(--bg);
 }
 
-/* ================= Layout ================= */
+/* ===== Layout ===== */
 .emp-layout {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
 
-/* ================= Sidebar ================= */
+/* ===== Sidebar ===== */
 .emp-sidebar {
   width: 240px;
   background: linear-gradient(180deg, #1f2937, #111827);
@@ -49,7 +52,6 @@ body {
   color: var(--orange);
 }
 
-/* ===== Sidebar Nav ===== */
 .emp-nav {
   display: flex;
   flex-direction: column;
@@ -78,11 +80,6 @@ body {
   font-weight: 600;
 }
 
-.emp-nav-item.active .emp-icon {
-  color: var(--orange-dark);
-}
-
-/* Logout */
 .emp-nav-item.logout {
   margin-top: auto;
   color: #fecaca;
@@ -90,10 +87,10 @@ body {
 
 .emp-nav-item.logout:hover {
   background: #7f1d1d;
-  color: #fff;
+  color: white;
 }
 
-/* ================= Main ================= */
+/* ===== Main ===== */
 .emp-main {
   margin-left: 240px;
   width: calc(100% - 240px);
@@ -101,7 +98,7 @@ body {
   flex-direction: column;
 }
 
-/* ================= Navbar ================= */
+/* ===== Navbar ===== */
 .emp-navbar {
   height: 64px;
   background: white;
@@ -122,7 +119,6 @@ body {
   color: var(--muted);
 }
 
-/* Avatar */
 .emp-avatar-circle {
   width: 36px;
   height: 36px;
@@ -134,7 +130,7 @@ body {
   place-items: center;
 }
 
-/* ================= Content ================= */
+/* ===== Content ===== */
 .emp-content {
   margin-top: 64px;
   padding: 28px;
@@ -142,15 +138,31 @@ body {
   height: calc(100vh - 64px);
 }
 
-/* ================= Punch Card ================= */
+/* ===== Dashboard Grid ===== */
+.emp-dashboard-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.emp-left-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-right-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* ===== Punch Card ===== */
 .emp-punch-card {
   background: white;
   padding: 24px;
   border-radius: 18px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.07);
-  margin-bottom: 24px;
-  max-width: 520px;
-  position: relative;
 }
 
 .emp-punch-card h3 {
@@ -160,47 +172,7 @@ body {
   color: var(--dark);
 }
 
-/* ================= Status Badge ================= */
-.emp-status-badge {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-present {
-  background: #dcfce7;
-  color: var(--green);
-}
-
-.status-late {
-  background: #fef3c7;
-  color: var(--yellow);
-}
-
-.status-wfh {
-  background: #e0f2fe;
-  color: #0284c7;
-}
-
-/* ================= Punch Times ================= */
-.emp-punch-times {
-  display: flex;
-  gap: 28px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: var(--dark);
-}
-
-.emp-punch-times strong {
-  color: var(--muted);
-}
-
-/* ================= Live Timer ================= */
+/* ===== Timer ===== */
 .emp-timer {
   margin: 14px 0 18px;
   padding: 14px;
@@ -209,141 +181,25 @@ body {
   color: var(--green);
   font-size: 20px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.3); }
-  70% { box-shadow: 0 0 0 10px rgba(22,163,74,0); }
-  100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
-}
-
-/* ================= WFH Toggle ================= */
-.wfh-toggle {
+/* ===== Productive Time ===== */
+.emp-productive-time {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #ecfeff;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 8px;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   font-size: 14px;
   color: var(--dark);
-  margin-bottom: 14px;
 }
 
-.wfh-toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--orange);
+.emp-productive-time strong {
+  color: #0369a1;
 }
 
-/* ================= Buttons ================= */
-.punch-btn {
-  padding: 11px 28px;
-  border-radius: 12px;
-  border: none;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.punch-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-}
-
-.punch-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.punch-in {
-  background: var(--green);
-  color: white;
-}
-
-.punch-out {
-  background: var(--red);
-  color: white;
-}
-
-/* ================= Messages ================= */
-.punch-msg {
-  margin-top: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--red);
-}
-
-.punch-complete {
-  margin-top: 10px;
-  font-weight: 600;
-  color: var(--green);
-}
-
-/* ================= Charts ================= */
-.emp-charts {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-}
-
-.emp-chart-card,
-.emp-pie-wrapper {
-  background: white;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.07);
-}
-
-/* ================= Icons ================= */
-.emp-icon {
-  font-size: 16px;
-}
-
-/* ================= Responsive ================= */
-@media (max-width: 1024px) {
-  .emp-charts {
-    grid-template-columns: 1fr;
-  }
-
-  .emp-punch-times {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .emp-punch-card {
-    max-width: 100%;
-  }
-}
-.emp-chart-card {
-  background: white;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-
-  height: 360px;          /* ✅ REQUIRED */
-  min-height: 360px;     /* ✅ REQUIRED */
-  display: flex;
-  flex-direction: column;
-}
-
-.emp-chart-card h4 {
-  margin-bottom: 8px;
-}
-
-.emp-pie-wrapper {
-  margin-top: 24px;
-  background: white;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-
-  height: 420px;         /* ✅ REQUIRED */
-  min-height: 420px;    /* ✅ REQUIRED */
-}
 /* ===== Permission ===== */
 .permission-box {
   margin-top: 14px;
@@ -351,7 +207,7 @@ body {
 
 .permission-box label {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .permission-row {
@@ -364,43 +220,52 @@ body {
   width: 100px;
   padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid var(--border-light);
-  font-size: 14px;
+  border: 1px solid var(--border);
 }
 
-.permission-btn {
+.permission-row button {
   padding: 6px 14px;
   border-radius: 6px;
   border: none;
-  background: var(--orange-primary);
+  background: var(--orange);
   color: white;
   cursor: pointer;
-  font-size: 13px;
 }
 
-.permission-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.permission-msg {
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--green);
-}
-.emp-productive-time {
-  margin-top: 10px;
-  padding: 10px 14px;
-  background: #ecfeff;
-  border-left: 4px solid #0ea5e9;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #1f2937;
-}
-
-.emp-productive-time strong {
-  color: #0369a1;
+/* ===== Buttons ===== */
+.punch-btn {
+  margin-top: 16px;
+  padding: 11px 28px;
+  border-radius: 12px;
+  border: none;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.punch-in {
+  background: var(--green);
+  color: white;
+}
+
+.punch-out {
+  background: var(--red);
+  color: white;
+}
+
+/* ===== Charts ===== */
+.emp-chart-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.07);
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .emp-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }

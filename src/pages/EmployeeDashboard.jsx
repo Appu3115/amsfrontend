@@ -20,7 +20,6 @@ import {
 } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";
 
-/* ================= Helpers ================= */
 const formatTime12H = (dateTime) =>
   dateTime
     ? new Date(dateTime).toLocaleTimeString("en-IN", {
@@ -42,8 +41,6 @@ const formatDuration = (seconds) => {
 
 const EmployeeDashboard = () => {
   const user = JSON.parse(sessionStorage.getItem("user")) || {};
-
-
   const employeeId = user.employeeId?.toUpperCase();
 
   const firstName = user.firstName || "Employee";
@@ -62,161 +59,128 @@ const EmployeeDashboard = () => {
 
   const [runningSeconds, setRunningSeconds] = useState(0);
 
-  // Permission state
   const [permissionMinutes, setPermissionMinutes] = useState("");
   const [permissionLoading, setPermissionLoading] = useState(false);
   const [permissionMsg, setPermissionMsg] = useState("");
-const [productiveSeconds, setProductiveSeconds] = useState(0);
 
-useActivityTracker(
-  employeeId,
-  todayAttendance && !todayAttendance.logout
-);
-const fetchProductiveTime = async () => {
-  try {
-    const today = new Date().toISOString().split("T")[0];
+  const [productiveSeconds, setProductiveSeconds] = useState(0);
 
-    const res = await api.get("/attendance/activity/productive-time", {
-      params: { employeeId, date: today },
-    });
+  useActivityTracker(
+    employeeId,
+    todayAttendance && !todayAttendance.logout
+  );
 
-    setProductiveSeconds(res.data || 0);
-  } catch (err) {
-    console.log(err)
-    console.error("Productive time fetch failed");
-  }
-};
+  const fetchProductiveTime = async () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const res = await api.get(
+        "/attendance/activity/productive-time",
+        { params: { employeeId, date: today } }
+      );
+      setProductiveSeconds(res.data || 0);
+    } catch (e) {
+      console.log(e)
+    }
+  };
 
-  /* ================= Fetch Attendance ================= */
   const fetchAttendance = async () => {
     try {
-      // fetchProductiveTime();
-
       if (!employeeId) return;
- fetchProductiveTime();
-      const res = await api.get(
-        `/attendance/employee/${employeeId}`
-      );
-
+      fetchProductiveTime();
+      const res = await api.get(`/attendance/employee/${employeeId}`);
       const data = Array.isArray(res.data) ? res.data : [];
       setAttendance(data);
-
       const today = new Date().toISOString().split("T")[0];
       setTodayAttendance(
         data.find((a) => a.attendanceDate === today) || null
       );
-    } catch (err) {
-      console.error("Attendance fetch failed", err);
+    } catch (e) {
+      console.log(e)
     }
   };
-useEffect(() => {
-  if (todayAttendance && !todayAttendance.logout) {
-    const interval = setInterval(() => {
-      fetchProductiveTime();
-    }, 30000); // every 30 sec
 
-    return () => clearInterval(interval);
-  }
-}, [todayAttendance]);
+  useEffect(() => {
+    if (todayAttendance && !todayAttendance.logout) {
+      const interval = setInterval(fetchProductiveTime, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [todayAttendance]);
 
   useEffect(() => {
     fetchAttendance();
   }, [employeeId]);
 
-  /* ================= Auto Refresh (30s) ================= */
   useEffect(() => {
     if (!employeeId) return;
-
     const interval = setInterval(() => {
       if (!punchLoading) fetchAttendance();
     }, 30000);
-
     return () => clearInterval(interval);
   }, [employeeId, punchLoading]);
 
-  /* ================= Timer ================= */
   useEffect(() => {
     if (!todayAttendance || todayAttendance.logout) {
       setRunningSeconds(0);
       return;
     }
-
     const loginTime = new Date(todayAttendance.login).getTime();
-
     const interval = setInterval(() => {
       setRunningSeconds(
         Math.floor((Date.now() - loginTime) / 1000)
       );
     }, 1000);
-
     return () => clearInterval(interval);
   }, [todayAttendance]);
 
-  /* ================= Punch In ================= */
   const handlePunchIn = async () => {
     try {
       setPunchLoading(true);
       setPunchMsg("");
-
       await api.post("/attendance/login", null, {
         params: { employeeId, workFromHome },
       });
-
-      setPunchMsg("✅ Punch In successful");
+      setPunchMsg("Punch In successful");
       setWorkFromHome(false);
       fetchAttendance();
-    } catch (err) {
-      setPunchMsg(err.response?.data || "Punch In failed");
-      fetchAttendance();
+    } catch (e) {
+      console.log(e)
+      setPunchMsg("Punch In failed");
     } finally {
       setPunchLoading(false);
     }
   };
 
-  /* ================= Punch Out ================= */
   const handlePunchOut = async () => {
     try {
       setPunchLoading(true);
       setPunchMsg("");
-
       await api.post("/attendance/logout", null, {
         params: { employeeId },
       });
-
-      setPunchMsg("✅ Punch Out successful");
+      setPunchMsg("Punch Out successful");
       fetchAttendance();
-    } catch (err) {
-      setPunchMsg(err.response?.data || "Punch Out failed");
+    } catch (e) {
+      console.log(e)
+      setPunchMsg("Punch Out failed");
     } finally {
       setPunchLoading(false);
     }
   };
 
-  /* ================= Permission Request ================= */
   const handlePermissionRequest = async () => {
-    if (!permissionMinutes || permissionMinutes <= 0) {
-      setPermissionMsg("Enter valid permission minutes");
-      return;
-    }
-
+    if (!permissionMinutes || permissionMinutes <= 0) return;
     try {
       setPermissionLoading(true);
       setPermissionMsg("");
-
       await api.post("/attendance/permission", null, {
-        params: {
-          employeeId,
-          minutes: permissionMinutes,
-        },
+        params: { employeeId, minutes: permissionMinutes },
       });
-
-      setPermissionMsg("✅ Permission recorded");
+      setPermissionMsg("Permission recorded");
       setPermissionMinutes("");
       fetchAttendance();
-    } catch (err) {
-      setPermissionMsg(
-        err.response?.data || "Permission request failed"
-      );
+    } catch (e) {
+      console.log(e)
+      setPermissionMsg("Permission failed");
     } finally {
       setPermissionLoading(false);
     }
@@ -224,10 +188,8 @@ useEffect(() => {
 
   return (
     <div className="emp-layout">
-      {/* ================= Sidebar ================= */}
       <aside className="emp-sidebar">
         <div className="emp-logo">AMS Employee</div>
-
         <nav className="emp-nav">
           {[
             ["dashboard", "Dashboard", <FaHome />],
@@ -251,7 +213,6 @@ useEffect(() => {
               <span>{label}</span>
             </div>
           ))}
-
           <div className="emp-nav-item logout">
             <FaSignOutAlt className="emp-icon" />
             <span>Logout</span>
@@ -261,7 +222,6 @@ useEffect(() => {
 
       {showLeave && <LeaveRequest onClose={() => setShowLeave(false)} />}
 
-      {/* ================= Main ================= */}
       <div className="emp-main">
         <header className="emp-navbar">
           <h3>Employee Dashboard</h3>
@@ -273,112 +233,105 @@ useEffect(() => {
 
         <main className="emp-content">
           {activeMenu === "dashboard" && (
-            <>
-              {/* Punch Card */}
-              <div className="emp-punch-card">
-                <h3>Today Attendance</h3>
+            <div className="emp-dashboard-grid">
+              <div className="emp-left-col">
+                <div className="emp-punch-card">
+                  <h3>Today Attendance</h3>
 
-                {todayAttendance && !todayAttendance.logout && (
-                  <>
-                    <p>
-                      <strong>Login:</strong>{" "}
-                      {formatTime12H(todayAttendance.login)}
-                    </p>
+                  {todayAttendance && !todayAttendance.logout && (
+                    <>
+                      <p>
+                        <strong>Login:</strong>{" "}
+                        {formatTime12H(todayAttendance.login)}
+                      </p>
 
-                    <div className="emp-timer">
-                      ⏱ {formatDuration(runningSeconds)}
-                    </div>
-                    {/* Work Session Controls */}
-<div style={{ marginTop: "20px" }}>
-  <WorkSessionControls />
-</div>
-<div className="emp-productive-time">
-  <span>Productive Time</span>
-  <strong>{formatDuration(productiveSeconds)}</strong>
-</div>
+                      <div className="emp-timer">
+                        ⏱ {formatDuration(runningSeconds)}
+                      </div>
 
-                    {/* Permission */}
-                    <div className="permission-box">
-                      <label>Permission (minutes)</label>
-                      <div className="permission-row">
+                      <WorkSessionControls />
+
+                      <div className="emp-productive-time">
+                        <span>Productive Time</span>
+                        <strong>
+                          {formatDuration(productiveSeconds)}
+                        </strong>
+                      </div>
+
+                      <div className="permission-box">
+                        <label>Permission (minutes)</label>
+                        <div className="permission-row">
+                          <input
+                            type="number"
+                            value={permissionMinutes}
+                            onChange={(e) =>
+                              setPermissionMinutes(e.target.value)
+                            }
+                          />
+                          <button
+                            onClick={handlePermissionRequest}
+                            disabled={permissionLoading}
+                          >
+                            Request
+                          </button>
+                        </div>
+                        {permissionMsg && (
+                          <p>{permissionMsg}</p>
+                        )}
+                      </div>
+
+                      <button
+                        className="punch-btn punch-out"
+                        onClick={handlePunchOut}
+                        disabled={punchLoading}
+                      >
+                        Punch Out
+                      </button>
+                    </>
+                  )}
+
+                  {!todayAttendance && (
+                    <>
+                      <label className="wfh-toggle">
                         <input
-                          type="number"
-                          min="1"
-                          value={permissionMinutes}
+                          type="checkbox"
+                          checked={workFromHome}
                           onChange={(e) =>
-                            setPermissionMinutes(e.target.value)
+                            setWorkFromHome(e.target.checked)
                           }
                         />
-                        <button
-                          className="permission-btn"
-                          onClick={handlePermissionRequest}
-                          disabled={permissionLoading}
-                        >
-                          {permissionLoading ? "Saving..." : "Request"}
-                        </button>
-                      </div>
-                      {permissionMsg && (
-                        <p className="permission-msg">
-                          {permissionMsg}
-                        </p>
-                      )}
-                    </div>
+                        Work From Home
+                      </label>
+                      <button
+                        className="punch-btn punch-in"
+                        onClick={handlePunchIn}
+                        disabled={punchLoading}
+                      >
+                        Punch In
+                      </button>
+                    </>
+                  )}
 
-                    <button
-                      className="punch-btn punch-out"
-                      onClick={handlePunchOut}
-                      disabled={punchLoading}
-                    >
-                      Punch Out
-                    </button>
-                  </>
-                )}
+                  {todayAttendance?.logout && (
+                    <p>Attendance completed</p>
+                  )}
 
-                {!todayAttendance && (
-                  <>
-                    <label className="wfh-toggle">
-                      <input
-                        type="checkbox"
-                        checked={workFromHome}
-                        onChange={(e) =>
-                          setWorkFromHome(e.target.checked)
-                        }
-                      />
-                      Work From Home
-                    </label>
-                    <button
-                      className="punch-btn punch-in"
-                      onClick={handlePunchIn}
-                      disabled={punchLoading}
-                    >
-                      Punch In
-                    </button>
-                  </>
-                )}
-
-                {todayAttendance?.logout && (
-                  <p className="punch-complete">
-                    ✅ Attendance completed
-                  </p>
-                )}
-
-                {punchMsg && <p className="punch-msg">{punchMsg}</p>}
+                  {punchMsg && <p>{punchMsg}</p>}
+                </div>
               </div>
 
-              {/* Charts */}
-              <div className="emp-charts">
+              <div className="emp-right-col">
                 <div className="emp-chart-card">
                   <WeeklyAttendanceChart attendance={attendance} />
                 </div>
                 <div className="emp-chart-card">
                   <MonthlyAttendanceChart attendance={attendance} />
                 </div>
+                <div className="emp-chart-card">
+                  <AttendancePieChart attendance={attendance} />
+                </div>
               </div>
-
-              <div className="emp-pie-wrapper">
-                <AttendancePieChart attendance={attendance} />
-              </div>
-            </>
+            </div>
           )}
 
           {activeMenu === "attendance" && <AttendanceHistory />}
