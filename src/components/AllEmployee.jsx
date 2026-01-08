@@ -30,7 +30,7 @@ const AllEmployee = () => {
 
   const fetchEmployees = async () => {
     try {
-      const res = await api.get("/user/allemployeesdetails");
+      const res = await api.get("/user/getAllEmployees");
       setEmployees(res.data);
     } catch (err) {
       setError("Failed to load employee details");

@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import AddDepartment from "./components/AddDepartment";
 import AllEmployee from "./components/AllEmployee";
 import AttendanceHistory from "./components/AttendanceHistory";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ChangePassword from "./components/ChangePassword";
 
 function App() {
   return (
@@ -16,15 +17,15 @@ function App() {
 
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* Dashboards (no protection) */}
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/employeedashboard" element={<EmployeeDashboard />} />
-
+        <Route path="/managerdashboard" element={<ManagerDashboard/>}/>
         <Route path="/addDepartments" element={<AddDepartment />} />
         <Route path="/allemployees" element={<AllEmployee />} />
         <Route path="/employee/attendance" element={<AttendanceHistory />} />
+        <Route path="/change-password" element={<ChangePassword/>}/>
 
       </Routes>
     </BrowserRouter>

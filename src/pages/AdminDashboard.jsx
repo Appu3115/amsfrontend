@@ -4,7 +4,7 @@ import { useState } from "react";
 import AllEmployee from "../components/AllEmployee";
 import AllLeaveRequests from "../components/AllLeaveRequests";
 import AdminAttendance from "../components/AdminAttendance";
-
+import CreateManager from "../components/CreateManager";
 
 import {
   FaTachometerAlt,
@@ -22,6 +22,7 @@ import "../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("dashboard");
+const [showCreateManager, setShowCreateManager] = useState(false);
 
   const stats = [
     { title: "Total Employees", value: 45 },
@@ -136,7 +137,32 @@ const AdminDashboard = () => {
           {activePage === "shifts" && <Shifts />}
 
           {/* ===== Employees ===== */}
-           {activePage === "employees" && <AllEmployee />}
+           {activePage === "employees" && (
+  <>
+    <div className="employees-header">
+      <h2>Employees</h2>
+
+      <button
+        className="create-manager-btn"
+        onClick={() => setShowCreateManager(true)}
+      >
+        + Create Manager
+      </button>
+    </div>
+
+    <AllEmployee />
+
+    <CreateManager
+      isOpen={showCreateManager}
+      onClose={() => setShowCreateManager(false)}
+      onSuccess={() => {
+        setShowCreateManager(false);
+        // Optional: refresh employee list
+      }}
+    />
+  </>
+)}
+
            {/* ===== Leave Requests ===== */}
         {activePage === "leaves" && <AllLeaveRequests />}
 

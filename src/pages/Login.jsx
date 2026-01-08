@@ -6,7 +6,6 @@ import "../styles/Login.css";
 const Login = () => {
   const [form, setForm] = useState({
     email: "",
-    employeeId: "",
     password: "",
   });
 
@@ -29,26 +28,41 @@ const Login = () => {
       const res = await api.post("/user/login", form);
       const data = res.data;
 
-      // 🔐 Get role from backend response
-      const role = data.role?.toUpperCase();
+      const role = data.role?.toLowerCase();
 
       if (!role) {
         throw new Error("Role missing in login response");
       }
 
-      // 🧹 Clear any previous sessions
-      sessionStorage.removeItem("user_admin");
-      sessionStorage.removeItem("user_employee");
+      // 🧹 Clear previous session
+      sessionStorage.clear();
 
-      // ✅ Store user with ROLE IN KEY
-      const userKey = `user_${role.toLowerCase()}`;
+      // ✅ Store user using role-based key
+      const userKey = `user_${role}`;
       sessionStorage.setItem(userKey, JSON.stringify(data));
 
-      // 🚀 Redirect (replace kills browser back to login)
-      if (role === "ADMIN") {
-        navigate("/admindashboard", { replace: true });
-      } else {
-        navigate("/employeedashboard", { replace: true });
+      // 🔐 Force password change on first login
+      if (data.forcePasswordChange) {
+        navigate("/change-password", { replace: true });
+        return;
+      }
+
+      // 🚀 Role-based navigation
+      switch (role) {
+        case "admin":
+          navigate("/admindashboard", { replace: true });
+          break;
+
+        case "manager":
+          navigate("/managerdashboard", { replace: true });
+          break;
+
+        case "employee":
+          navigate("/employeedashboard", { replace: true });
+          break;
+
+        default:
+          throw new Error("Unknown role");
       }
 
     } catch (err) {
@@ -56,7 +70,7 @@ const Login = () => {
         setError(
           typeof err.response.data === "string"
             ? err.response.data
-            : "Invalid credentials"
+            : "Invalid email or password"
         );
       } else {
         setError("Backend not responding");
@@ -75,16 +89,9 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <input
             name="email"
+            type="email"
             placeholder="Email"
             value={form.email}
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            name="employeeId"
-            placeholder="Employee ID"
-            value={form.employeeId}
             onChange={handleChange}
             required
           />
@@ -106,7 +113,7 @@ const Login = () => {
         </form>
 
         <div className="login-link">
-          Don’t have an account? <Link to="/register">Register</Link>
+          <Link to="/forgot-password">Forgot Password?</Link>
         </div>
       </div>
     </div>
