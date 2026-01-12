@@ -23,32 +23,23 @@ const ManagerDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [openModal, setOpenModal] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [user, setUser] = useState(null);
 
+  /* ================= AUTH GUARD ================= */
   useEffect(() => {
-  const loggedUser = getUser();
-  const loggedRole = getRole();
+    const loggedUser = getUser();
+    const loggedRole = getRole();
 
-  if (!loggedUser || loggedRole !== "MANAGER") {
-    navigate("/login", { replace: true });
-    return;
-  }
+    if (!loggedUser || loggedRole !== "MANAGER") {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
-  // ✅ Guard prevents unnecessary setState
-  setUser(prev => prev ?? loggedUser);
-
-  if (loggedUser.forcePasswordChange === true) {
-    setActiveTab("profile");
-    setShowChangePassword(true);
-  }
-}, [navigate]);
-
-
+  const user = getUser();
   if (!user) return null;
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
+      {/* ================= SIDEBAR ================= */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
         <div className="sidebar-logo">AMS</div>
 
@@ -98,7 +89,7 @@ const ManagerDashboard = () => {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* ================= MAIN ================= */}
       <div className="main-content">
         <header className="navbar">
           <div className="navbar-left">
@@ -111,7 +102,7 @@ const ManagerDashboard = () => {
 
           <div className="navbar-right">
             <div className="avatar-circle">
-              {user.firstName.charAt(0).toUpperCase()}
+              {user.firstName?.charAt(0).toUpperCase()}
             </div>
             <span className="user-name">{user.firstName}</span>
           </div>
@@ -140,7 +131,6 @@ const ManagerDashboard = () => {
             </>
           )}
 
-          {/* ✅ PROFILE PAGE */}
           {activeTab === "profile" && (
             <div className="profile-card">
               <h3>Profile</h3>
@@ -160,8 +150,10 @@ const ManagerDashboard = () => {
                 <span>{user.role}</span>
               </div>
 
+              {/* 🔐 Change Password Button */}
               <button
                 className="btn-primary"
+                style={{ marginTop: "16px" }}
                 onClick={() => setShowChangePassword(true)}
               >
                 <FaKey /> Change Password
@@ -171,26 +163,20 @@ const ManagerDashboard = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* ================= MODALS ================= */}
       <CreateEmployeeModal
         open={openModal}
         onClose={() => setOpenModal(false)}
       />
 
       {showChangePassword && (
-        <div className="modal-overlay">
-          <div className="modal-wrapper">
-            <ChangePassword
-              passwordChanged={!user.forcePasswordChange}
-              onClose={() => setShowChangePassword(false)}
-            />
-          </div>
-        </div>
+        <ChangePassword onClose={() => setShowChangePassword(false)} />
       )}
     </div>
   );
 };
 
+/* ================= SIDEBAR ITEM ================= */
 const SidebarItem = ({ icon, label, active, onClick }) => (
   <div
     className={`sidebar-item ${active ? "active" : ""}`}

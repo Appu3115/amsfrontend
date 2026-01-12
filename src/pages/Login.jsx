@@ -29,41 +29,16 @@ const Login = () => {
       const data = res.data;
 
       const role = data.role?.toLowerCase();
-
-      if (!role) {
-        throw new Error("Role missing in login response");
-      }
+      if (!role) throw new Error("Role missing in login response");
 
       // 🧹 Clear previous session
       sessionStorage.clear();
 
-      // ✅ Store user using role-based key
-      const userKey = `user_${role}`;
-      sessionStorage.setItem(userKey, JSON.stringify(data));
+      // ✅ Store user by role
+      sessionStorage.setItem(`user_${role}`, JSON.stringify(data));
 
-      // 🔐 Force password change on first login
-      if (data.forcePasswordChange) {
-        navigate("/change-password", { replace: true });
-        return;
-      }
-
-      // 🚀 Role-based navigation
-      switch (role) {
-        case "admin":
-          navigate("/admindashboard", { replace: true });
-          break;
-
-        case "manager":
-          navigate("/managerdashboard", { replace: true });
-          break;
-
-        case "employee":
-          navigate("/employeedashboard", { replace: true });
-          break;
-
-        default:
-          throw new Error("Unknown role");
-      }
+      // 🚀 Direct login to dashboard
+      navigateToDashboard(role);
 
     } catch (err) {
       if (err.response) {
@@ -77,6 +52,22 @@ const Login = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const navigateToDashboard = (role) => {
+    switch (role) {
+      case "admin":
+        navigate("/admindashboard", { replace: true });
+        break;
+      case "manager":
+        navigate("/managerdashboard", { replace: true });
+        break;
+      case "employee":
+        navigate("/employeedashboard", { replace: true });
+        break;
+      default:
+        navigate("/login", { replace: true });
     }
   };
 

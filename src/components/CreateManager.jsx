@@ -1,22 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/axios";
 import "../styles/CreateManager.css";
 
 const CreateManager = ({ isOpen, onClose, onSuccess }) => {
   const admin = JSON.parse(sessionStorage.getItem("user_admin"));
 
-  const [form, setForm] = useState({
+  const initialFormState = {
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     departmentName: "",
     joinDate: "",
-  });
+    shiftId: ""
+  };
 
+  const [form, setForm] = useState(initialFormState);
+  const [shifts, setShifts] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // 🔹 Format time to 12h
+  const formatTime12h = (time24) => {
+    if (!time24) return "";
+    const [h, m] = time24.split(":");
+    let hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12;
+    return `${hour}:${m} ${ampm}`;
+  };
+
+  // ================= FETCH SHIFTS + DEPARTMENTS =================
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setForm(initialFormState);
+    setError("");
+    setSuccess("");
+
+    const fetchData = async () => {
+      try {
+        const [shiftRes, deptRes] = await Promise.all([
+          api.get("/shift/getAllShift"),
+          api.get("/department/fetchAll")
+        ]);
+
+        setShifts(shiftRes.data);
+        setDepartments(deptRes.data);
+      } catch (e) {
+        console.error(e);
+        setError("Unable to load data");
+      }
+    };
+
+    fetchData();
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setForm(initialFormState);
+    setError("");
+    setSuccess("");
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -25,28 +72,29 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
     setError("");
   };
 
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       await api.post(
         `/user/create-manager?adminEmployeeId=${admin.employeeId}`,
-        form
+        {
+          ...form,
+          shiftId: Number(form.shiftId)
+        }
       );
 
       setSuccess("Manager created successfully. Credentials sent via email.");
 
       setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1500);
+        onSuccess?.();
+        handleClose();
+      }, 1200);
 
     } catch (err) {
-      setError(
-        err.response?.data || "Failed to create manager"
-      );
+      setError(err.response?.data || "Failed to create manager");
     } finally {
       setLoading(false);
     }
@@ -56,9 +104,11 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
     <div className="modal-overlay">
       <div className="modal-box">
 
+        {/* CLOSE */}
+        <button className="close-btn" onClick={handleClose}>×</button>
+
         <div className="modal-header">
           <h2>Create Manager</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
@@ -95,13 +145,20 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
             required
           />
 
-          <input
+          {/* ✅ DEPARTMENT DROPDOWN */}
+          <select
             name="departmentName"
-            placeholder="Department Name"
             value={form.departmentName}
             onChange={handleChange}
             required
-          />
+          >
+            <option value="">Select Department</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.deptName}>
+                {dept.deptName}
+              </option>
+            ))}
+          </select>
 
           <input
             type="date"
@@ -111,14 +168,30 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
             required
           />
 
+          {/* SHIFT DROPDOWN */}
+          <select
+            name="shiftId"
+            value={form.shiftId}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Shift</option>
+            {shifts.map((shift) => (
+              <option key={shift.id} value={shift.id}>
+                {shift.shiftName} ({shift.shiftType}) —{" "}
+                {formatTime12h(shift.startTime)} - {formatTime12h(shift.endTime)}
+              </option>
+            ))}
+          </select>
+
           {error && <p className="error-text">{error}</p>}
           {success && <p className="success-text">{success}</p>}
 
           <button type="submit" disabled={loading}>
             {loading ? "Creating..." : "Create Manager"}
           </button>
-        </form>
 
+        </form>
       </div>
     </div>
   );

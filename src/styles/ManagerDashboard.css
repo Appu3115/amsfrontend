@@ -49,6 +49,7 @@
   cursor: pointer;
   position: relative;
   color: #d1d5db;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebar-item:hover {
@@ -177,7 +178,7 @@
 }
 
 /* ===============================
-   Profile Page
+   Profile
 ================================ */
 .profile-card {
   max-width: 520px;
@@ -204,7 +205,7 @@
 ================================ */
 .btn-primary {
   background: #f97316;
-  color: #fff;
+  color: #ffffff;
   border: none;
   padding: 10px 16px;
   border-radius: 6px;
@@ -213,14 +214,17 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-primary:hover {
   background: #ea580c;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
 }
 
 /* ===============================
-   Modal Overlay (ONLY OVERLAY)
+   Modal Overlay
+   (Used by dashboard modals)
 ================================ */
 .modal-overlay {
   position: fixed;
@@ -230,11 +234,4 @@
   align-items: center;
   justify-content: center;
   z-index: 999;
-}
-
-/* IMPORTANT: wrapper has NO visual styles */
-.modal-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }

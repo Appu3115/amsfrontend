@@ -8,6 +8,8 @@ import AllEmployee from "./components/AllEmployee";
 import AttendanceHistory from "./components/AttendanceHistory";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import ChangePassword from "./components/ChangePassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -26,7 +28,8 @@ function App() {
         <Route path="/allemployees" element={<AllEmployee />} />
         <Route path="/employee/attendance" element={<AttendanceHistory />} />
         <Route path="/change-password" element={<ChangePassword/>}/>
-
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
+        <Route path="/reset-password" element={<ResetPassword/>}/>
       </Routes>
     </BrowserRouter>
   );
