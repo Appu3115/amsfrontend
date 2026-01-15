@@ -15,7 +15,7 @@ import ChangePassword from "../components/ChangePassword";
 import { getUser, getRole, logout } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import "../styles/ManagerDashboard.css";
-
+import DepartmentEmployees from "../components/DepartmentEmployees";
 const ManagerDashboard = () => {
   const navigate = useNavigate();
 
@@ -117,19 +117,22 @@ const ManagerDashboard = () => {
           )}
 
           {activeTab === "employees" && (
-            <>
-              <div className="content-header">
-                <h3>Employees</h3>
-                <button
-                  className="btn-primary"
-                  onClick={() => setOpenModal(true)}
-                >
-                  + Create Employee
-                </button>
-              </div>
-              <p>Employee list will appear here.</p>
-            </>
-          )}
+  <>
+    <div className="content-header">
+      <h3>Employees</h3>
+      <button
+        className="btn-primary"
+        onClick={() => setOpenModal(true)}
+      >
+        + Create Employee
+      </button>
+    </div>
+
+    {/* 👇 Department Employees Component */}
+    <DepartmentEmployees />
+  </>
+)}
+
 
           {activeTab === "profile" && (
             <div className="profile-card">

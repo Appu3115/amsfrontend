@@ -10,7 +10,7 @@ import WorkSessionControls from "../components/WorkSessionControls";
 import useActivityTracker from "../hooks/useActivityTracker";
 import api from "../api/axios";
 import { getUser } from "../utils/auth";
-
+import ProfileForm from "../components/ProfileForm";
 import {
   FaHome,
   FaCalendarCheck,
@@ -346,6 +346,12 @@ const EmployeeDashboard = () => {
           )}
 
           {activeMenu === "attendance" && <AttendanceHistory />}
+          {activeMenu === "profile" && (
+  <div className="emp-profile-section">
+    <ProfileForm />
+  </div>
+)}
+
         </main>
       </div>
     </div>
