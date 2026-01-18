@@ -317,7 +317,17 @@ body {
 
 @media (max-width: 768px) {
   .emp-sidebar {
-    display: none;
+    position: fixed;
+    left: -240px;        /* hidden off-screen */
+    top: 0;
+    height: 100vh;
+    width: 240px;
+    transition: left 0.3s ease;
+    z-index: 2000;
+  }
+
+  .emp-sidebar.open {
+    left: 0;             /* slide in */
   }
 
   .emp-main {
@@ -329,3 +339,4 @@ body {
     inset: 0;
   }
 }
+

@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import api from "../api/axios";
 import "../styles/WorkSessionControls.css";
 import { getUser } from "../utils/auth";
+
 const WorkSessionControls = () => {
   const user = getUser();
-   const employeeId = user.employeeId?.toUpperCase();
+  const employeeId = user.employeeId?.toUpperCase();
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
@@ -19,9 +20,21 @@ const WorkSessionControls = () => {
       const res = await api.post("/attendance/pause", null, {
         params: { employeeId, type },
       });
-      setStatusMsg(res.data);
+
+      const msg =
+        typeof res.data === "string"
+          ? res.data
+          : res.data?.["break start time"]
+          ? `Break started at ${res.data["break start time"]}`
+          : "Break started";
+
+      setStatusMsg(msg);
     } catch (err) {
-      setErrorMsg(err.response?.data || "Action failed");
+      setErrorMsg(
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : "Action failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -36,9 +49,16 @@ const WorkSessionControls = () => {
       const res = await api.post("/attendance/resume", null, {
         params: { employeeId },
       });
-      setStatusMsg(res.data);
+
+      setStatusMsg(
+        typeof res.data === "string" ? res.data : "Work resumed"
+      );
     } catch (err) {
-      setErrorMsg(err.response?.data || "Action failed");
+      setErrorMsg(
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : "Action failed"
+      );
     } finally {
       setLoading(false);
     }

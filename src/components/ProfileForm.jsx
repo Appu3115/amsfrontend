@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import "../styles/ProfileForm.css";
 
@@ -15,13 +15,26 @@ const ProfileForm = () => {
   const employeeId = user?.employeeId;
 
   const [profile, setProfile] = useState(null);
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    imageURL: "",
+    address: "",
+    emergencyContact1: "",
+    emergencyContact2: "",
+  });
+
+  const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openEdit, setOpenEdit] = useState(false);
-
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  /* ===== Image adjust ===== */
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  /* ================= LOAD PROFILE ================= */
   const loadProfile = async () => {
     try {
       const res = await api.get(`/user/getprofile/${employeeId}`);
@@ -41,6 +54,7 @@ const ProfileForm = () => {
     if (employeeId) loadProfile();
   }, [employeeId]);
 
+  /* ================= IMAGE UPLOAD ================= */
   const uploadImage = async (file) => {
     setUploading(true);
     const data = new FormData();
@@ -57,27 +71,61 @@ const ProfileForm = () => {
     return result.secure_url;
   };
 
+  /* ================= SAVE PROFILE ================= */
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (!profile?.address) {
-        await api.post(`/user/createprofile/${employeeId}`, form);
-      } else {
-        await api.put(`/user/update/${employeeId}`, form);
+      let imageURL = form.imageURL;
+
+      if (selectedFile) {
+        imageURL = await uploadImage(selectedFile);
       }
+
+      const payload = {
+        ...form,
+        imageURL,
+      };
+
+      if (!profile?.address) {
+        await api.post(`/user/createprofile/${employeeId}`, payload);
+      } else {
+        await api.put(`/user/update/${employeeId}`, payload);
+      }
+
       setOpenEdit(false);
+      setSelectedFile(null);
+      setZoom(1);
+      setPosition({ x: 0, y: 0 });
       loadProfile();
     } finally {
       setSaving(false);
     }
   };
 
+  /* ================= DRAG ================= */
+  const handleMouseDown = (e) => {
+    setDragging(true);
+    dragStart.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging) return;
+    setPosition({
+      x: e.clientX - dragStart.current.x,
+      y: e.clientY - dragStart.current.y,
+    });
+  };
+
+  const handleMouseUp = () => setDragging(false);
+
   if (loading) return <div className="profile-loading">Loading profile…</div>;
 
   return (
     <div className="profile-page">
-
-      {/* ===== HERO SECTION ===== */}
+      {/* ===== HERO ===== */}
       <div className="profile-hero">
         <img
           src={
@@ -103,9 +151,8 @@ const ProfileForm = () => {
         </button>
       </div>
 
-      {/* ===== DETAILS ===== */}
+      {/* ===== DETAILS (RESTORED FULLY) ===== */}
       <div className="profile-sections">
-
         <section>
           <h3>Basic Information</h3>
           <div className="info-grid">
@@ -136,27 +183,58 @@ const ProfileForm = () => {
 
       {/* ===== MODAL ===== */}
       {openEdit && (
-        <div className="modal-overlay">
+        <div
+          className="modal-overlay"
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+        >
           <div className="modal">
             <h3>{profile?.address ? "Update Profile" : "Create Profile"}</h3>
 
             <input
               type="file"
-              onChange={async (e) =>
-                setForm({
-                  ...form,
-                  imageURL: await uploadImage(e.target.files[0]),
-                })
-              }
+              accept="image/*"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
             />
 
-            {uploading && <p className="muted">Uploading image…</p>}
-            {form.imageURL && <img src={form.imageURL} className="preview-img" />}
+            {(selectedFile || form.imageURL) && (
+              <div className="image-adjust-wrapper">
+                <div
+                  className="image-crop-circle"
+                  onMouseDown={handleMouseDown}
+                  style={{ cursor: dragging ? "grabbing" : "grab" }}
+                >
+                  <img
+                    src={
+                      selectedFile
+                        ? URL.createObjectURL(selectedFile)
+                        : form.imageURL
+                    }
+                    alt="Preview"
+                    style={{
+                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                    }}
+                  />
+                </div>
+
+                <input
+                  type="range"
+                  min="1"
+                  max="2"
+                  step="0.01"
+                  value={zoom}
+                  onChange={(e) => setZoom(e.target.value)}
+                  className="zoom-slider"
+                />
+              </div>
+            )}
 
             <textarea
               placeholder="Address"
               value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, address: e.target.value })
+              }
             />
 
             <input
@@ -176,15 +254,27 @@ const ProfileForm = () => {
             />
 
             <div className="modal-actions">
-              <button onClick={() => setOpenEdit(false)}>Cancel</button>
-              <button className="edit-btn" onClick={handleSave} disabled={saving}>
+              <button
+                onClick={() => {
+                  setOpenEdit(false);
+                  setSelectedFile(null);
+                  setZoom(1);
+                  setPosition({ x: 0, y: 0 });
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="edit-btn"
+                onClick={handleSave}
+                disabled={saving || uploading}
+              >
                 {saving ? "Saving…" : "Save"}
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

@@ -15,7 +15,10 @@ import ChangePassword from "../components/ChangePassword";
 import { getUser, getRole, logout } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import "../styles/ManagerDashboard.css";
+import ProfileForm from "../components/ProfileForm";
 import DepartmentEmployees from "../components/DepartmentEmployees";
+import DepartmentAttendance from "../components/DepartmentAttendance";
+import DepartmentLeaveRequests from "../components/DepartmentLeaveRequests";
 const ManagerDashboard = () => {
   const navigate = useNavigate();
 
@@ -116,6 +119,7 @@ const ManagerDashboard = () => {
             </>
           )}
 
+
           {activeTab === "employees" && (
   <>
     <div className="content-header">
@@ -127,42 +131,37 @@ const ManagerDashboard = () => {
         + Create Employee
       </button>
     </div>
-
-    {/* 👇 Department Employees Component */}
     <DepartmentEmployees />
+  </>
+)}
+{activeTab === "attendance" && (
+  <>
+    <h3>Department Attendance</h3>
+    <DepartmentAttendance />
+  </>
+)}
+{activeTab === "leave" && (
+  <>
+    <h3>Department Leave Requests</h3>
+    <DepartmentLeaveRequests />
   </>
 )}
 
 
           {activeTab === "profile" && (
-            <div className="profile-card">
-              <h3>Profile</h3>
+  <>
+    <ProfileForm />
+    <div style={{ marginTop: "24px" }}>
+      <button
+        className="btn-primary"
+        onClick={() => setShowChangePassword(true)}
+      >
+        <FaKey /> Change Password
+      </button>
+    </div>
+  </>
+)}
 
-              <div className="profile-row">
-                <span>Name</span>
-                <span>{user.firstName}</span>
-              </div>
-
-              <div className="profile-row">
-                <span>Email</span>
-                <span>{user.email}</span>
-              </div>
-
-              <div className="profile-row">
-                <span>Role</span>
-                <span>{user.role}</span>
-              </div>
-
-              {/* 🔐 Change Password Button */}
-              <button
-                className="btn-primary"
-                style={{ marginTop: "16px" }}
-                onClick={() => setShowChangePassword(true)}
-              >
-                <FaKey /> Change Password
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

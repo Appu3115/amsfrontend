@@ -3,6 +3,8 @@ import api from "../api/axios";
 import StatusBadge from "./StatusBadge";
 import "../styles/AttendanceHistory.css";
 import { getUser } from "../utils/auth";
+import LeaveRequest from "./LeaveRequest";
+
 const AttendanceHistory = () => {
   const user = getUser();
   const employeeId = user.employeeId?.toUpperCase();
@@ -11,31 +13,30 @@ const AttendanceHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // 🔹 Leave popup
+  const [showLeave, setShowLeave] = useState(false);
+
   useEffect(() => {
     if (employeeId) fetchAttendance();
   }, [employeeId]);
 
-  // 📅 Date → 31/12/2025
-  const formatDateOnly = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString("en-IN");
-  };
+  /* ---------- Helpers ---------- */
 
-  // ⏰ Time → 1:11 PM
-  const formatTime12H = (dateTime) => {
-    if (!dateTime) return "-";
-    return new Date(dateTime).toLocaleTimeString("en-IN", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
+  const formatDateOnly = (date) =>
+    date ? new Date(date).toLocaleDateString("en-IN") : "-";
+
+  const formatTime12H = (dateTime) =>
+    dateTime
+      ? new Date(dateTime).toLocaleTimeString("en-IN", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "-";
 
   const fetchAttendance = async () => {
     try {
-      const res = await api.get(
-        `/attendance/employee/${employeeId}`
-      );
+      const res = await api.get(`/attendance/employee/${employeeId}`);
       setAttendance(res.data);
     } catch (err) {
       console.error(err);
@@ -49,65 +50,89 @@ const AttendanceHistory = () => {
   if (error) return <p className="error">{error}</p>;
 
   return (
-    <div className="attendance-container">
-      <div className="attendance-header">
-        <h2>Attendance History</h2>
-        <p>Track your daily attendance & work summary</p>
+    <>
+      <div className="attendance-container">
+        {/* ===== Header ===== */}
+        <div className="attendance-header">
+          <div>
+            <h2>Attendance History</h2>
+            <p>Track your daily attendance & work summary</p>
+          </div>
+
+          {/* 🔹 Apply Leave Button */}
+          <button
+            className="apply-leave-btn"
+            onClick={() => setShowLeave(true)}
+          >
+            + Apply Leave
+          </button>
+        </div>
+
+        {attendance.length === 0 ? (
+          <p className="empty">No attendance records found</p>
+        ) : (
+          <div className="table-wrapper">
+            <table className="attendance-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Login</th>
+                  <th>Logout</th>
+                  <th>Attendance</th>
+                  <th>Daily Status</th>
+                  <th>Work</th>
+                  <th>Break</th>
+                  <th>Permission</th>
+                  <th>Late</th>
+                  <th>Overtime</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {attendance.map((a, index) => (
+                  <tr
+                    key={index}
+                    className={a.attendanceStatus?.toLowerCase()}
+                  >
+                    <td>{formatDateOnly(a.attendanceDate)}</td>
+                    <td>{formatTime12H(a.login)}</td>
+                    <td>{formatTime12H(a.logout)}</td>
+
+                    <td>
+                      <StatusBadge status={a.attendanceStatus} />
+                    </td>
+
+                    <td>
+                      <StatusBadge status={a.dailyStatus} />
+                    </td>
+
+                    <td>{formatDuration(a.totalWorkMinutes)}</td>
+                    <td>{formatDuration(a.totalBreakMinutes)}</td>
+                    <td>{formatDuration(a.permissionMinutes)}</td>
+                    <td>{formatDuration(a.lateMinutes)}</td>
+                    <td>{formatDuration(a.overtimeMinutes)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {attendance.length === 0 ? (
-        <p className="empty">No attendance records found</p>
-      ) : (
-        <div className="table-wrapper">
-          <table className="attendance-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Login</th>
-                <th>Logout</th>
-                <th>Attendance</th>
-                <th>Daily Status</th>
-                <th>Work (mins)</th>
-                <th>Break (mins)</th>
-                <th>Permission (mins)</th>
-                <th>Late (mins)</th>
-                <th>Overtime (mins)</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {attendance.map((a, index) => (
-                <tr
-                  key={index}
-                  className={a.attendanceStatus?.toLowerCase()}
-                >
-                  <td>{formatDateOnly(a.attendanceDate)}</td>
-                  <td>{formatTime12H(a.login)}</td>
-                  <td>{formatTime12H(a.logout)}</td>
-
-                  <td>
-                    <StatusBadge status={a.attendanceStatus} />
-                  </td>
-
-                  <td>
-                    <StatusBadge status={a.dailyStatus} />
-                  </td>
-
-                  <td>{formatDuration(a.totalWorkMinutes) ?? 0}</td>
-                  <td>{formatDuration(a.totalBreakMinutes) ?? 0}</td>
-                  <td>{formatDuration(a.permissionMinutes) ?? 0}</td>
-                  <td>{formatDuration(a.lateMinutes) ?? 0}</td>
-                  <td>{formatDuration(a.overtimeMinutes) ?? 0}</td>
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </div>
+      {/* ===== Leave Request Popup ===== */}
+      {showLeave && (
+        <LeaveRequest
+          onClose={() => {
+            setShowLeave(false);
+            fetchAttendance(); // refresh after applying leave
+          }}
+        />
       )}
-    </div>
+    </>
   );
 };
+
+/* ---------- Duration formatter ---------- */
 const formatDuration = (minutes) => {
   if (minutes === null || minutes === undefined) return "-";
   if (minutes < 60) return `${minutes}m`;
@@ -117,4 +142,5 @@ const formatDuration = (minutes) => {
 
   return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
 };
+
 export default AttendanceHistory;

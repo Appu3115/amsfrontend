@@ -1,0 +1,238 @@
+:root {
+  --primary: #f97316;
+  --primary-light: #fff7ed;
+  --text-dark: #111827;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+}
+
+/* ================= Container ================= */
+.leave-container {
+  margin-top: 12px;
+}
+
+/* ================= Card ================= */
+.leave-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* ================= Table ================= */
+.leave-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.leave-table th {
+  background: var(--primary-light);
+  color: var(--primary);
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.leave-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.leave-table tr:hover {
+  background: #fffaf5;
+}
+
+/* ================= Status ================= */
+.status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status.approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ================= Proof Button ================= */
+.proof-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.proof-btn:hover {
+  text-decoration: underline;
+}
+
+/* ================= Action Buttons ================= */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn {
+  padding: 6px 14px;
+  background: #16a34a;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.approve-btn:hover {
+  background: #15803d;
+}
+
+.reject-btn {
+  padding: 6px 14px;
+  background: #dc2626;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reject-btn:hover {
+  background: #b91c1c;
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================= States ================= */
+.leave-loader {
+  padding: 32px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.leave-error {
+  padding: 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 12px;
+}
+
+.no-data {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+/* ================= Modal Overlay ================= */
+.proof-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ================= Modal ================= */
+.proof-modal {
+  width: 720px;
+  max-width: 95%;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.proof-modal h3 {
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+/* ================= Close Button ================= */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: none;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.close-btn:hover {
+  color: var(--text-dark);
+}
+
+/* ================= Proof Content ================= */
+.proof-content {
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.proof-image {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+}
+
+.proof-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: none;
+}
+
+/* ================= Footer ================= */
+.proof-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.proof-footer button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.proof-footer button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

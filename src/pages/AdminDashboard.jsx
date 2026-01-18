@@ -5,6 +5,7 @@ import AllEmployee from "../components/AllEmployee";
 import AllLeaveRequests from "../components/AllLeaveRequests";
 import AdminAttendance from "../components/AdminAttendance";
 import CreateManager from "../components/CreateManager";
+import DailyCount from "../components/DailyCount";
 
 import {
   FaTachometerAlt,
@@ -17,20 +18,12 @@ import {
   FaSignOutAlt,
   FaClipboardList,
 } from "react-icons/fa";
+
 import "../styles/AdminDashboard.css";
-// import AllLeaveRequests from "../components/AllLeaveRequests";
 
 const AdminDashboard = () => {
   const [activePage, setActivePage] = useState("dashboard");
-const [showCreateManager, setShowCreateManager] = useState(false);
-
-  const stats = [
-    { title: "Total Employees", value: 45 },
-    { title: "Present Today", value: 38 },
-    { title: "Absent Today", value: 5 },
-    { title: "On Leave", value: 2 },
-    { title: "Late Check-ins", value: 4 },
-  ];
+  const [showCreateManager, setShowCreateManager] = useState(false);
 
   return (
     <div className="admin-container">
@@ -47,14 +40,13 @@ const [showCreateManager, setShowCreateManager] = useState(false);
             <span className="link-text">Dashboard</span>
           </button>
 
-        <button
-  className={`nav-link ${activePage === "employees" ? "active" : ""}`}
-  onClick={() => setActivePage("employees")}
->
-  <FaUsers className="icon" />
-  <span className="link-text">Employees</span>
-</button>
-
+          <button
+            className={`nav-link ${activePage === "employees" ? "active" : ""}`}
+            onClick={() => setActivePage("employees")}
+          >
+            <FaUsers className="icon" />
+            <span className="link-text">Employees</span>
+          </button>
 
           <button
             className={`nav-link ${activePage === "departments" ? "active" : ""}`}
@@ -72,7 +64,6 @@ const [showCreateManager, setShowCreateManager] = useState(false);
             <span className="link-text">Shifts</span>
           </button>
 
-          {/* ✅ ATTENDANCE BUTTON */}
           <button
             className={`nav-link ${activePage === "attendance" ? "active" : ""}`}
             onClick={() => setActivePage("attendance")}
@@ -80,13 +71,14 @@ const [showCreateManager, setShowCreateManager] = useState(false);
             <FaCalendarCheck className="icon" />
             <span className="link-text">Attendance</span>
           </button>
-<button
-  className={`nav-link ${activePage === "leaves" ? "active" : ""}`}
-  onClick={() => setActivePage("leaves")}
->
-  <FaClipboardList className="icon" />
-  <span className="link-text">Leave Requests</span>
-</button>
+
+          <button
+            className={`nav-link ${activePage === "leaves" ? "active" : ""}`}
+            onClick={() => setActivePage("leaves")}
+          >
+            <FaClipboardList className="icon" />
+            <span className="link-text">Leave Requests</span>
+          </button>
 
           <button className="nav-link">
             <FaFileAlt className="icon" />
@@ -115,20 +107,8 @@ const [showCreateManager, setShowCreateManager] = useState(false);
         </header>
 
         <section className="page-content">
-          {/* ===== Dashboard Overview ===== */}
-          {activePage === "dashboard" && (
-            <>
-              <h2>Overview</h2>
-              <div className="stats-grid">
-                {stats.map((item, index) => (
-                  <div key={index} className="stat-card">
-                    <p className="card-title">{item.title}</p>
-                    <h1 className="card-value">{item.value}</h1>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+          {/* ✅ DASHBOARD = DAILY COUNT */}
+          {activePage === "dashboard" && <DailyCount />}
 
           {/* ===== Departments ===== */}
           {activePage === "departments" && <AddDepartment />}
@@ -137,37 +117,33 @@ const [showCreateManager, setShowCreateManager] = useState(false);
           {activePage === "shifts" && <Shifts />}
 
           {/* ===== Employees ===== */}
-           {activePage === "employees" && (
-  <>
-    <div className="employees-header">
-      <h2>Employees</h2>
+          {activePage === "employees" && (
+            <>
+              <div className="employees-header">
+                <h2>Employees</h2>
+                <button
+                  className="create-manager-btn"
+                  onClick={() => setShowCreateManager(true)}
+                >
+                  + Create Manager
+                </button>
+              </div>
 
-      <button
-        className="create-manager-btn"
-        onClick={() => setShowCreateManager(true)}
-      >
-        + Create Manager
-      </button>
-    </div>
+              <AllEmployee />
 
-    <AllEmployee />
+              <CreateManager
+                isOpen={showCreateManager}
+                onClose={() => setShowCreateManager(false)}
+                onSuccess={() => setShowCreateManager(false)}
+              />
+            </>
+          )}
 
-    <CreateManager
-      isOpen={showCreateManager}
-      onClose={() => setShowCreateManager(false)}
-      onSuccess={() => {
-        setShowCreateManager(false);
-        // Optional: refresh employee list
-      }}
-    />
-  </>
-)}
+          {/* ===== Leave Requests ===== */}
+          {activePage === "leaves" && <AllLeaveRequests />}
 
-           {/* ===== Leave Requests ===== */}
-        {activePage === "leaves" && <AllLeaveRequests />}
-
-
-         {activePage === "attendance" && <AdminAttendance />}
+          {/* ===== Attendance ===== */}
+          {activePage === "attendance" && <AdminAttendance />}
         </section>
       </main>
     </div>

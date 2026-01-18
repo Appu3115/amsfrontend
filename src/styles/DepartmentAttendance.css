@@ -1,0 +1,107 @@
+:root {
+  --primary: #f97316;
+  --primary-light: #fff7ed;
+  --text-dark: #111827;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --bg: #f9fafb;
+}
+
+.att-container {
+  padding: 24px;
+  background: var(--bg);
+  min-height: 100vh;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Header */
+.att-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.att-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* Card */
+.att-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Table */
+.att-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.att-table th {
+  text-align: left;
+  padding: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.att-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dark);
+}
+
+.att-table tr:hover {
+  background: #fffaf5;
+}
+
+/* Status badges */
+.status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status.present {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.absent {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status.leave {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+/* States */
+.att-loader {
+  padding: 40px;
+  text-align: center;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.att-error {
+  padding: 20px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 12px;
+}
+
+.no-data {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+}

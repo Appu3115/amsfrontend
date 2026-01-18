@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "../styles/EmployeeDashboard.css";
 
-import LeaveRequest from "../components/LeaveRequest";
 import AttendanceHistory from "../components/AttendanceHistory";
+import EmployeeLeaveRecords from "../components/EmployeeLeaveRecords";
 import WeeklyAttendanceChart from "../components/WeeklyAttendanceChart";
 import MonthlyAttendanceChart from "../components/MonthlyAttendanceChart";
 import AttendancePieChart from "../components/AttendancePieChart";
@@ -11,10 +11,10 @@ import useActivityTracker from "../hooks/useActivityTracker";
 import api from "../api/axios";
 import { getUser } from "../utils/auth";
 import ProfileForm from "../components/ProfileForm";
+
 import {
   FaHome,
   FaCalendarCheck,
-  FaRegCalendarPlus,
   FaHistory,
   FaUser,
   FaSignOutAlt,
@@ -52,9 +52,7 @@ const EmployeeDashboard = () => {
   /* ---------- State ---------- */
   const [attendance, setAttendance] = useState([]);
   const [todayAttendance, setTodayAttendance] = useState(null);
-
   const [activeMenu, setActiveMenu] = useState("dashboard");
-  const [showLeave, setShowLeave] = useState(false);
 
   const [punchLoading, setPunchLoading] = useState(false);
   const [punchMsg, setPunchMsg] = useState("");
@@ -63,7 +61,6 @@ const EmployeeDashboard = () => {
   const [runningSeconds, setRunningSeconds] = useState(0);
   const [productiveSeconds, setProductiveSeconds] = useState(0);
 
-  // ✅ Permission
   const [permissionMinutes, setPermissionMinutes] = useState("");
   const [permissionLoading, setPermissionLoading] = useState(false);
   const [permissionMsg, setPermissionMsg] = useState("");
@@ -82,14 +79,15 @@ const EmployeeDashboard = () => {
         { params: { employeeId, date: today } }
       );
       setProductiveSeconds(res.data || 0);
-    } catch (e) {
-      console.log(e);
+    } catch(e) {
+      console.log(e)
     }
   };
 
   const fetchAttendance = async () => {
     try {
       if (!employeeId) return;
+
       fetchProductiveTime();
 
       const res = await api.get(`/attendance/employee/${employeeId}`);
@@ -100,8 +98,8 @@ const EmployeeDashboard = () => {
       setTodayAttendance(
         data.find((a) => a.attendanceDate === today) || null
       );
-    } catch (e) {
-      console.log(e);
+    } catch(e) {
+      console.log(e)
     }
   };
 
@@ -115,12 +113,14 @@ const EmployeeDashboard = () => {
       setRunningSeconds(0);
       return;
     }
+
     const loginTime = new Date(todayAttendance.login).getTime();
     const interval = setInterval(() => {
       setRunningSeconds(
         Math.floor((Date.now() - loginTime) / 1000)
       );
     }, 1000);
+
     return () => clearInterval(interval);
   }, [todayAttendance]);
 
@@ -170,7 +170,7 @@ const EmployeeDashboard = () => {
         params: {
           employeeId,
           minutes: permissionMinutes,
-          type, // LATE_IN | EARLY_OUT
+          type,
         },
       });
 
@@ -194,37 +194,32 @@ const EmployeeDashboard = () => {
     <div className="emp-layout">
       <aside className="emp-sidebar">
         <div className="emp-logo">AMS Employee</div>
+
         <nav className="emp-nav">
           {[
             ["dashboard", "Dashboard", <FaHome />],
             ["attendance", "Attendance", <FaCalendarCheck />],
-            ["applyLeave", "Apply Leave", <FaRegCalendarPlus />],
             ["history", "Leave History", <FaHistory />],
             ["profile", "Profile", <FaUser />],
-            ["shifts", "Shifts", <FaTimeline />],
           ].map(([key, label, icon]) => (
             <div
               key={key}
               className={`emp-nav-item ${
                 activeMenu === key ? "active" : ""
               }`}
-              onClick={() => {
-                setActiveMenu(key);
-                setShowLeave(key === "applyLeave");
-              }}
+              onClick={() => setActiveMenu(key)}
             >
               <span className="emp-icon">{icon}</span>
               <span>{label}</span>
             </div>
           ))}
+
           <div className="emp-nav-item logout">
             <FaSignOutAlt className="emp-icon" />
             <span>Logout</span>
           </div>
         </nav>
       </aside>
-
-      {showLeave && <LeaveRequest onClose={() => setShowLeave(false)} />}
 
       <div className="emp-main">
         <header className="emp-navbar">
@@ -242,13 +237,15 @@ const EmployeeDashboard = () => {
                 <div className="emp-punch-card">
                   <h3>Today Attendance</h3>
 
-                  {/* ✅ AFTER PUNCH-IN */}
                   {todayAttendance && !todayAttendance.logout && (
                     <>
-                      <p><strong>Login:</strong> {formatTime12H(todayAttendance.login)}</p>
+                      <p>
+                        <strong>Login:</strong>{" "}
+                        {formatTime12H(todayAttendance.login)}
+                      </p>
 
                       <div className="emp-timer">
-                       Working Hour ⏱ {formatDuration(runningSeconds)}
+                        Working Hour ⏱ {formatDuration(runningSeconds)}
                       </div>
 
                       <WorkSessionControls />
@@ -264,10 +261,14 @@ const EmployeeDashboard = () => {
                           <input
                             type="number"
                             value={permissionMinutes}
-                            onChange={(e) => setPermissionMinutes(e.target.value)}
+                            onChange={(e) =>
+                              setPermissionMinutes(e.target.value)
+                            }
                           />
                           <button
-                            onClick={() => handlePermissionRequest("EARLY_OUT")}
+                            onClick={() =>
+                              handlePermissionRequest("EARLY_OUT")
+                            }
                             disabled={permissionLoading}
                           >
                             Request
@@ -286,7 +287,6 @@ const EmployeeDashboard = () => {
                     </>
                   )}
 
-                  {/* ✅ BEFORE PUNCH-IN */}
                   {!todayAttendance && (
                     <>
                       <div className="permission-box">
@@ -295,10 +295,14 @@ const EmployeeDashboard = () => {
                           <input
                             type="number"
                             value={permissionMinutes}
-                            onChange={(e) => setPermissionMinutes(e.target.value)}
+                            onChange={(e) =>
+                              setPermissionMinutes(e.target.value)
+                            }
                           />
                           <button
-                            onClick={() => handlePermissionRequest("LATE_IN")}
+                            onClick={() =>
+                              handlePermissionRequest("LATE_IN")
+                            }
                             disabled={permissionLoading}
                           >
                             Request
@@ -311,7 +315,9 @@ const EmployeeDashboard = () => {
                         <input
                           type="checkbox"
                           checked={workFromHome}
-                          onChange={(e) => setWorkFromHome(e.target.checked)}
+                          onChange={(e) =>
+                            setWorkFromHome(e.target.checked)
+                          }
                         />
                         Work From Home
                       </label>
@@ -326,7 +332,9 @@ const EmployeeDashboard = () => {
                     </>
                   )}
 
-                  {todayAttendance?.logout && <p>Attendance completed</p>}
+                  {todayAttendance?.logout && (
+                    <p>Attendance completed</p>
+                  )}
                   {punchMsg && <p>{punchMsg}</p>}
                 </div>
               </div>
@@ -346,12 +354,14 @@ const EmployeeDashboard = () => {
           )}
 
           {activeMenu === "attendance" && <AttendanceHistory />}
-          {activeMenu === "profile" && (
-  <div className="emp-profile-section">
-    <ProfileForm />
-  </div>
-)}
 
+          {activeMenu === "history" && <EmployeeLeaveRecords />}
+
+          {activeMenu === "profile" && (
+            <div className="emp-profile-section">
+              <ProfileForm />
+            </div>
+          )}
         </main>
       </div>
     </div>

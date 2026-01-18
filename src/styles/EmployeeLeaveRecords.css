@@ -1,0 +1,141 @@
+.emp-leave-container {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+/* Tabs */
+.leave-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.tab-btn.active {
+  background: #f97316;
+  color: white;
+}
+
+/* Table */
+.leave-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.leave-table th,
+.leave-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.leave-table tr:hover {
+  background: #fdf4ee;
+}
+
+/* Status */
+.status {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status.pending {
+  color: #d97706;
+}
+
+.status.approved {
+  color: #16a34a;
+}
+
+.status.rejected {
+  color: #dc2626;
+}
+
+/* Buttons */
+.view-btn {
+  padding: 6px 14px;
+  background: #f97316;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.view-btn:hover {
+  background: #ea580c;
+}
+
+/* Proof modal – reuse same styles you already have */
+.proof-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.proof-modal {
+  width: 90%;
+  max-width: 850px;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: none;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.proof-content {
+  height: 420px;
+  background: #f9fafb;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proof-image {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.proof-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.proof-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}

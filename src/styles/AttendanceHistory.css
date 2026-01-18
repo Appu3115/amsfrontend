@@ -156,3 +156,22 @@
     font-size: 13px;
   }
 }
+.apply-leave-btn {
+  background: #f97316;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.apply-leave-btn:hover {
+  background: #ea580c;
+}
+
+.attendance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
