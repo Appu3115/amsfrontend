@@ -1,197 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "../styles/EmployeeDashboard.css";
 
 import AttendanceHistory from "../components/AttendanceHistory";
 import EmployeeLeaveRecords from "../components/EmployeeLeaveRecords";
-import WeeklyAttendanceChart from "../components/WeeklyAttendanceChart";
-import MonthlyAttendanceChart from "../components/MonthlyAttendanceChart";
-import AttendancePieChart from "../components/AttendancePieChart";
-import WorkSessionControls from "../components/WorkSessionControls";
-import useActivityTracker from "../hooks/useActivityTracker";
-import api from "../api/axios";
-import { getUser } from "../utils/auth";
 import ProfileForm from "../components/ProfileForm";
-
+import PunchCard from "../components/PunchCard";
+import { getUser } from "../utils/auth";
+import HolidayList from "../components/HolidayList";
 import {
   FaHome,
   FaCalendarCheck,
   FaHistory,
   FaUser,
+  FaChartBar,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { FaTimeline } from "react-icons/fa6";
 
-/* ---------- Helpers ---------- */
-const formatTime12H = (dateTime) =>
-  dateTime
-    ? new Date(dateTime).toLocaleTimeString("en-IN", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : "-";
-
-const formatDuration = (seconds) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(
-    2,
-    "0"
-  )}:${String(s).padStart(2, "0")}`;
-};
-
+/* ---------- Employee Dashboard ---------- */
 const EmployeeDashboard = () => {
   const user = getUser();
-  const employeeId = user?.employeeId?.toUpperCase();
 
   const firstName = user?.firstName || "Employee";
   const lastName = user?.lastName || "";
   const avatarLetter = firstName.charAt(0).toUpperCase();
 
-  /* ---------- State ---------- */
-  const [attendance, setAttendance] = useState([]);
-  const [todayAttendance, setTodayAttendance] = useState(null);
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
-  const [punchLoading, setPunchLoading] = useState(false);
-  const [punchMsg, setPunchMsg] = useState("");
-  const [workFromHome, setWorkFromHome] = useState(false);
-
-  const [runningSeconds, setRunningSeconds] = useState(0);
-  const [productiveSeconds, setProductiveSeconds] = useState(0);
-
-  const [permissionMinutes, setPermissionMinutes] = useState("");
-  const [permissionLoading, setPermissionLoading] = useState(false);
-  const [permissionMsg, setPermissionMsg] = useState("");
-
-  useActivityTracker(
-    employeeId,
-    todayAttendance && !todayAttendance.logout
-  );
-
-  /* ---------- API Calls ---------- */
-  const fetchProductiveTime = async () => {
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      const res = await api.get(
-        "/attendance/activity/productive-time",
-        { params: { employeeId, date: today } }
-      );
-      setProductiveSeconds(res.data || 0);
-    } catch(e) {
-      console.log(e)
-    }
-  };
-
-  const fetchAttendance = async () => {
-    try {
-      if (!employeeId) return;
-
-      fetchProductiveTime();
-
-      const res = await api.get(`/attendance/employee/${employeeId}`);
-      const data = Array.isArray(res.data) ? res.data : [];
-      setAttendance(data);
-
-      const today = new Date().toISOString().split("T")[0];
-      setTodayAttendance(
-        data.find((a) => a.attendanceDate === today) || null
-      );
-    } catch(e) {
-      console.log(e)
-    }
-  };
-
-  /* ---------- Effects ---------- */
-  useEffect(() => {
-    fetchAttendance();
-  }, [employeeId]);
-
-  useEffect(() => {
-    if (!todayAttendance || todayAttendance.logout) {
-      setRunningSeconds(0);
-      return;
-    }
-
-    const loginTime = new Date(todayAttendance.login).getTime();
-    const interval = setInterval(() => {
-      setRunningSeconds(
-        Math.floor((Date.now() - loginTime) / 1000)
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [todayAttendance]);
-
-  /* ---------- Punch ---------- */
-  const handlePunchIn = async () => {
-    try {
-      setPunchLoading(true);
-      setPunchMsg("");
-      await api.post("/attendance/login", null, {
-        params: { employeeId, workFromHome },
-      });
-      setPunchMsg("Punch In successful");
-      setWorkFromHome(false);
-      fetchAttendance();
-    } catch {
-      setPunchMsg("Punch In failed");
-    } finally {
-      setPunchLoading(false);
-    }
-  };
-
-  const handlePunchOut = async () => {
-    try {
-      setPunchLoading(true);
-      setPunchMsg("");
-      await api.post("/attendance/logout", null, {
-        params: { employeeId },
-      });
-      setPunchMsg("Punch Out successful");
-      fetchAttendance();
-    } catch {
-      setPunchMsg("Punch Out failed");
-    } finally {
-      setPunchLoading(false);
-    }
-  };
-
-  /* ---------- Permission ---------- */
-  const handlePermissionRequest = async (type) => {
-    if (!permissionMinutes || permissionMinutes <= 0) return;
-
-    try {
-      setPermissionLoading(true);
-      setPermissionMsg("");
-
-      await api.post("/attendance/permission", null, {
-        params: {
-          employeeId,
-          minutes: permissionMinutes,
-          type,
-        },
-      });
-
-      setPermissionMsg(
-        type === "LATE_IN"
-          ? "Late punch-in permission recorded"
-          : "Early leave permission recorded"
-      );
-
-      setPermissionMinutes("");
-      fetchAttendance();
-    } catch {
-      setPermissionMsg("Permission request failed");
-    } finally {
-      setPermissionLoading(false);
-    }
-  };
-
-  /* ---------- UI ---------- */
   return (
     <div className="emp-layout">
+      {/* ---------- Sidebar ---------- */}
       <aside className="emp-sidebar">
         <div className="emp-logo">AMS Employee</div>
 
@@ -200,13 +37,13 @@ const EmployeeDashboard = () => {
             ["dashboard", "Dashboard", <FaHome />],
             ["attendance", "Attendance", <FaCalendarCheck />],
             ["history", "Leave History", <FaHistory />],
+             ["holidays", "Holidays", <FaCalendarCheck />], 
+            ["statistics", "Statistics", <FaChartBar />],
             ["profile", "Profile", <FaUser />],
           ].map(([key, label, icon]) => (
             <div
               key={key}
-              className={`emp-nav-item ${
-                activeMenu === key ? "active" : ""
-              }`}
+              className={`emp-nav-item ${activeMenu === key ? "active" : ""}`}
               onClick={() => setActiveMenu(key)}
             >
               <span className="emp-icon">{icon}</span>
@@ -221,142 +58,84 @@ const EmployeeDashboard = () => {
         </nav>
       </aside>
 
+      {/* ---------- Main ---------- */}
       <div className="emp-main">
         <header className="emp-navbar">
           <h3>Employee Dashboard</h3>
           <div className="emp-user">
             <div className="emp-avatar-circle">{avatarLetter}</div>
-            <span>{firstName} {lastName}</span>
+            <span>
+              {firstName} {lastName}
+            </span>
           </div>
         </header>
 
         <main className="emp-content">
+          {/* ---------- DASHBOARD ---------- */}
           {activeMenu === "dashboard" && (
-            <div className="emp-dashboard-grid">
-              <div className="emp-left-col">
-                <div className="emp-punch-card">
-                  <h3>Today Attendance</h3>
+  <div className="emp-dashboard">
+    <div className="emp-dashboard-header">
+      <h2>Welcome, {firstName} 👋</h2>
+      <p>
+        Track your workday, manage attendance, and request permissions.
+      </p>
+    </div>
 
-                  {todayAttendance && !todayAttendance.logout && (
-                    <>
-                      <p>
-                        <strong>Login:</strong>{" "}
-                        {formatTime12H(todayAttendance.login)}
-                      </p>
+    <div className="emp-dashboard-content">
+      <PunchCard />
+    </div>
+  </div>
+)}
 
-                      <div className="emp-timer">
-                        Working Hour ⏱ {formatDuration(runningSeconds)}
-                      </div>
 
-                      <WorkSessionControls />
+          {/* ---------- ATTENDANCE ---------- */}
+          {activeMenu === "attendance" && <AttendanceHistory />}
 
-                      <div className="emp-productive-time">
-                        <span>Productive Time</span>
-                        <strong>{formatDuration(productiveSeconds)}</strong>
-                      </div>
+          {/* ---------- LEAVE HISTORY ---------- */}
+          {activeMenu === "history" && <EmployeeLeaveRecords />}
 
-                      <div className="permission-box">
-                        <label>Early Leave Permission (minutes)</label>
-                        <div className="permission-row">
-                          <input
-                            type="number"
-                            value={permissionMinutes}
-                            onChange={(e) =>
-                              setPermissionMinutes(e.target.value)
-                            }
-                          />
-                          <button
-                            onClick={() =>
-                              handlePermissionRequest("EARLY_OUT")
-                            }
-                            disabled={permissionLoading}
-                          >
-                            Request
-                          </button>
-                        </div>
-                        {permissionMsg && <p>{permissionMsg}</p>}
-                      </div>
+{/* ---------- HOLIDAYS ---------- */}
+{activeMenu === "holidays" && (
+  <div className="emp-holiday-section">
+    <HolidayList title="Company Holidays" />
+  </div>
+)}
 
-                      <button
-                        className="punch-btn punch-out"
-                        onClick={handlePunchOut}
-                        disabled={punchLoading}
-                      >
-                        Punch Out
-                      </button>
-                    </>
-                  )}
+          {/* ---------- STATISTICS PAGE ---------- */}
+          {activeMenu === "statistics" && (
+            <div className="emp-statistics-page">
+              <h2>Attendance Statistics</h2>
 
-                  {!todayAttendance && (
-                    <>
-                      <div className="permission-box">
-                        <label>Late Punch-In Permission (minutes)</label>
-                        <div className="permission-row">
-                          <input
-                            type="number"
-                            value={permissionMinutes}
-                            onChange={(e) =>
-                              setPermissionMinutes(e.target.value)
-                            }
-                          />
-                          <button
-                            onClick={() =>
-                              handlePermissionRequest("LATE_IN")
-                            }
-                            disabled={permissionLoading}
-                          >
-                            Request
-                          </button>
-                        </div>
-                        {permissionMsg && <p>{permissionMsg}</p>}
-                      </div>
+              <div className="emp-stat-grid">
+                <div className="emp-stat-card">
+                  <span>Total Working Days</span>
+                  <strong>22</strong>
+                </div>
 
-                      <label className="wfh-toggle">
-                        <input
-                          type="checkbox"
-                          checked={workFromHome}
-                          onChange={(e) =>
-                            setWorkFromHome(e.target.checked)
-                          }
-                        />
-                        Work From Home
-                      </label>
+                <div className="emp-stat-card">
+                  <span>Present Days</span>
+                  <strong>18</strong>
+                </div>
 
-                      <button
-                        className="punch-btn punch-in"
-                        onClick={handlePunchIn}
-                        disabled={punchLoading}
-                      >
-                        Punch In
-                      </button>
-                    </>
-                  )}
+                <div className="emp-stat-card">
+                  <span>Absent Days</span>
+                  <strong>2</strong>
+                </div>
 
-                  {todayAttendance?.logout && (
-                    <p>Attendance completed</p>
-                  )}
-                  {punchMsg && <p>{punchMsg}</p>}
+                <div className="emp-stat-card">
+                  <span>Leave Days</span>
+                  <strong>2</strong>
                 </div>
               </div>
 
-              <div className="emp-right-col">
-                <div className="emp-chart-card">
-                  <WeeklyAttendanceChart attendance={attendance} />
-                </div>
-                <div className="emp-chart-card">
-                  <MonthlyAttendanceChart attendance={attendance} />
-                </div>
-                <div className="emp-chart-card">
-                  <AttendancePieChart attendance={attendance} />
-                </div>
-              </div>
+              <p className="emp-stat-note">
+                * Statistics shown are sample values. Backend integration
+                can be added later.
+              </p>
             </div>
           )}
 
-          {activeMenu === "attendance" && <AttendanceHistory />}
-
-          {activeMenu === "history" && <EmployeeLeaveRecords />}
-
+          {/* ---------- PROFILE ---------- */}
           {activeMenu === "profile" && (
             <div className="emp-profile-section">
               <ProfileForm />

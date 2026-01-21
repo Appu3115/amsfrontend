@@ -6,12 +6,10 @@ import {
   FaChartBar,
   FaSignOutAlt,
   FaBars,
-  FaUser,
-  FaKey
+  FaUser
 } from "react-icons/fa";
 
 import CreateEmployeeModal from "../components/CreateEmployeeModel";
-import ChangePassword from "../components/ChangePassword";
 import { getUser, getRole, logout } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import "../styles/ManagerDashboard.css";
@@ -19,13 +17,13 @@ import ProfileForm from "../components/ProfileForm";
 import DepartmentEmployees from "../components/DepartmentEmployees";
 import DepartmentAttendance from "../components/DepartmentAttendance";
 import DepartmentLeaveRequests from "../components/DepartmentLeaveRequests";
+import HolidayList from "../components/HolidayList";
 const ManagerDashboard = () => {
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [openModal, setOpenModal] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
 
   /* ================= AUTH GUARD ================= */
   useEffect(() => {
@@ -74,7 +72,12 @@ const ManagerDashboard = () => {
             active={activeTab === "leave"}
             onClick={() => setActiveTab("leave")}
           />
-
+          <SidebarItem
+          icon={<FaCalendarCheck/>}
+          label="Holidays"
+          active={activeTab==="Holidays"}
+          onClick={()=> setActiveTab("Holidays")}
+          />
           <SidebarItem
             icon={<FaUser />}
             label="Profile"
@@ -119,49 +122,37 @@ const ManagerDashboard = () => {
             </>
           )}
 
-
           {activeTab === "employees" && (
-  <>
-    <div className="content-header">
-      <h3>Employees</h3>
-      <button
-        className="btn-primary"
-        onClick={() => setOpenModal(true)}
-      >
-        + Create Employee
-      </button>
-    </div>
-    <DepartmentEmployees />
-  </>
-)}
-{activeTab === "attendance" && (
-  <>
-    <h3>Department Attendance</h3>
-    <DepartmentAttendance />
-  </>
-)}
-{activeTab === "leave" && (
-  <>
-    <h3>Department Leave Requests</h3>
-    <DepartmentLeaveRequests />
-  </>
-)}
+            <>
+              <div className="content-header">
+                <h3>Employees</h3>
+                <button
+                  className="btn-primary"
+                  onClick={() => setOpenModal(true)}
+                >
+                  + Create Employee
+                </button>
+              </div>
+              <DepartmentEmployees />
+            </>
+          )}
 
+          {activeTab === "attendance" && (
+            <>
+              <h3>Department Attendance</h3>
+              <DepartmentAttendance />
+            </>
+          )}
 
-          {activeTab === "profile" && (
-  <>
-    <ProfileForm />
-    <div style={{ marginTop: "24px" }}>
-      <button
-        className="btn-primary"
-        onClick={() => setShowChangePassword(true)}
-      >
-        <FaKey /> Change Password
-      </button>
-    </div>
-  </>
-)}
+          {activeTab === "leave" && (
+            <>
+              <h3>Department Leave Requests</h3>
+              <DepartmentLeaveRequests />
+            </>
+          )}
 
+          {activeTab === "profile" && <ProfileForm />}
+          {activeTab==="Holidays" && <HolidayList/>}
         </div>
       </div>
 
@@ -170,10 +161,6 @@ const ManagerDashboard = () => {
         open={openModal}
         onClose={() => setOpenModal(false)}
       />
-
-      {showChangePassword && (
-        <ChangePassword onClose={() => setShowChangePassword(false)} />
-      )}
     </div>
   );
 };

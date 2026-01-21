@@ -12,10 +12,14 @@ const AdminAttendance = () => {
 
   const fetchAttendance = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/attendance/all");
-      setData(res.data);
+
+      // ✅ IMPORTANT FIX: extract array from ResponseEntity
+      setData(res.data?.body || []);
     } catch (err) {
       console.error("Error fetching admin attendance", err);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -33,79 +37,93 @@ const AdminAttendance = () => {
       </div>
 
       <div className="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Employee</th>
-              <th>Date</th>
-              <th>Login</th>
-              <th>Logout</th>
-              <th>Late (min)</th>
-              <th>OT (min)</th>
-              <th>Status</th>
-              <th>Work (min)</th>
-              <th>Break (min)</th>
-              <th>Permission</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.map((row, index) => (
-              <tr key={index}>
-                <td>
-                  <div className="emp-info">
-                    <span className="emp-name">{row.employeeName}</span>
-                    <span className="emp-id">{row.employeeId}</span>
-                  </div>
-                </td>
-
-                <td>{formatDateOnly( row.attendanceDate)}</td>
-
-                <td>{row.login ? formatTime(row.login) : "-"}</td>
-                <td>{row.logout ? formatTime(row.logout) : "-"}</td>
-
-                <td>{formatDuration(row.lateMinutes)}</td>
-                <td>{formatDuration(row.overtimeMinutes)}</td>
-
-                <td>
-                  <span
-                    className={`status ${row.attendanceStatus.toLowerCase()}`}
-                  >
-                    {row.attendanceStatus}
-                  </span>
-                </td>
-
-                <td>{formatDuration(row.totalWorkMinutes) ?? "-"}</td>
-                <td>{formatDuration(row.totalBreakMinutes) ?? "-"}</td>
-                <td>{formatDuration(row.permissionMinutes) ?? "-"}</td>
+        {data.length === 0 ? (
+          <p className="empty">No attendance records found</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Date</th>
+                <th>Login</th>
+                <th>Logout</th>
+                <th>Status</th>
+                <th>Work</th>
+                <th>Break</th>
+                <th>Permission</th>
+                <th>Late</th>
+                <th>Overtime</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {data.map((row, index) => (
+                <tr
+                  key={index}
+                  className={row.dailyStatus?.toLowerCase()}
+                >
+                  <td>
+                    <div className="emp-info">
+                      <span className="emp-name">
+                        {row.employeeName}
+                      </span>
+                      <span className="emp-id">
+                        {row.employeeId}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td>{formatDateOnly(row.attendanceDate)}</td>
+
+                  <td>{formatTime(row.login)}</td>
+                  <td>{formatTime(row.logout)}</td>
+
+                  <td>
+                    <span
+                      className={`status ${row.dailyStatus?.toLowerCase()}`}
+                    >
+                      {row.dailyStatus}
+                    </span>
+                  </td>
+
+                  <td>{formatDuration(row.totalWorkMinutes)}</td>
+                  <td>{formatDuration(row.totalBreakMinutes)}</td>
+                  <td>{formatDuration(row.permissionMinutes)}</td>
+                  <td>{formatDuration(row.lateMinutes)}</td>
+                  <td>{formatDuration(row.overtimeMinutes)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
 };
 
-// 🔹 Time formatter
+/* ---------- Helpers ---------- */
+
 const formatTime = (dateTime) => {
-  const d = new Date(dateTime);
-  return d.toLocaleTimeString([], {
-    hour: "2-digit",
+  if (!dateTime) return "-";
+  return new Date(dateTime).toLocaleTimeString("en-IN", {
+    hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 };
+
 const formatDateOnly = (date) => {
   if (!date) return "-";
-
   return new Date(date).toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "numeric",
     year: "numeric",
   });
 };
+
 const formatDuration = (minutes) => {
   if (minutes === null || minutes === undefined) return "-";
+  if (minutes === 0) return "0m";
   if (minutes < 60) return `${minutes}m`;
 
   const hrs = Math.floor(minutes / 60);

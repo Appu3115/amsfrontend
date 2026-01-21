@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import "../styles/ProfileForm.css";
+import ChangePassword from "../components/ChangePassword";
 
 const CLOUD_NAME = "dangvotkt";
 const UPLOAD_PRESET = "amsproject";
@@ -13,6 +14,8 @@ const getLoggedUser = () =>
 const ProfileForm = () => {
   const user = getLoggedUser();
   const employeeId = user?.employeeId;
+
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({
@@ -146,12 +149,21 @@ const ProfileForm = () => {
           <span>{profile?.department?.name}</span>
         </div>
 
-        <button className="edit-btn" onClick={() => setOpenEdit(true)}>
-          {profile?.address ? "Edit Profile" : "Create Profile"}
-        </button>
+        <div className="profile-actions">
+          <button className="edit-btn" onClick={() => setOpenEdit(true)}>
+            {profile?.address ? "Edit Profile" : "Create Profile"}
+          </button>
+
+          <button
+            className="edit-btn secondary"
+            onClick={() => setShowChangePassword(true)}
+          >
+            Change Password
+          </button>
+        </div>
       </div>
 
-      {/* ===== DETAILS (RESTORED FULLY) ===== */}
+      {/* ===== DETAILS ===== */}
       <div className="profile-sections">
         <section>
           <h3>Basic Information</h3>
@@ -181,7 +193,7 @@ const ProfileForm = () => {
         </section>
       </div>
 
-      {/* ===== MODAL ===== */}
+      {/* ===== EDIT PROFILE MODAL ===== */}
       {openEdit && (
         <div
           className="modal-overlay"
@@ -232,9 +244,7 @@ const ProfileForm = () => {
             <textarea
               placeholder="Address"
               value={form.address}
-              onChange={(e) =>
-                setForm({ ...form, address: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
 
             <input
@@ -254,16 +264,7 @@ const ProfileForm = () => {
             />
 
             <div className="modal-actions">
-              <button
-                onClick={() => {
-                  setOpenEdit(false);
-                  setSelectedFile(null);
-                  setZoom(1);
-                  setPosition({ x: 0, y: 0 });
-                }}
-              >
-                Cancel
-              </button>
+              <button onClick={() => setOpenEdit(false)}>Cancel</button>
               <button
                 className="edit-btn"
                 onClick={handleSave}
@@ -274,6 +275,11 @@ const ProfileForm = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ===== CHANGE PASSWORD MODAL ===== */}
+      {showChangePassword && (
+        <ChangePassword onClose={() => setShowChangePassword(false)} />
       )}
     </div>
   );

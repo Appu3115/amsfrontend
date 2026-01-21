@@ -6,13 +6,14 @@ import AllLeaveRequests from "../components/AllLeaveRequests";
 import AdminAttendance from "../components/AdminAttendance";
 import CreateManager from "../components/CreateManager";
 import DailyCount from "../components/DailyCount";
-
+import HolidayAdmin from "../components/HolidayAdmin";
 import {
   FaTachometerAlt,
   FaUsers,
   FaBuilding,
   FaClock,
   FaCalendarCheck,
+  FaCalendarAlt ,
   FaFileAlt,
   FaCog,
   FaSignOutAlt,
@@ -71,6 +72,13 @@ const AdminDashboard = () => {
             <FaCalendarCheck className="icon" />
             <span className="link-text">Attendance</span>
           </button>
+          <button
+  className={`nav-link ${activePage === "holidays" ? "active" : ""}`}
+  onClick={() => setActivePage("holidays")}
+>
+  <FaCalendarAlt className="icon" />
+  <span className="link-text">Holidays</span>
+</button>
 
           <button
             className={`nav-link ${activePage === "leaves" ? "active" : ""}`}
@@ -115,6 +123,8 @@ const AdminDashboard = () => {
 
           {/* ===== Shifts ===== */}
           {activePage === "shifts" && <Shifts />}
+{/* ===== Holidays ===== */}
+{activePage === "holidays" && <HolidayAdmin />}
 
           {/* ===== Employees ===== */}
           {activePage === "employees" && (

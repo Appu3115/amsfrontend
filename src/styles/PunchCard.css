@@ -1,0 +1,140 @@
+/* ===============================
+   PUNCH CARD (SCOPED ONLY)
+================================ */
+
+.punch-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ---------- Title ---------- */
+.punch-card h3 {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f97316; /* orange */
+  margin-bottom: 20px;
+}
+
+/* ---------- Timer ---------- */
+.punch-card .timer {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+/* ---------- Status ---------- */
+.punch-card .status {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.punch-card .status.active {
+  color: #16a34a;
+}
+
+/* ---------- Permission Section ---------- */
+.punch-card .permission {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* Select */
+.punch-card select {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+.punch-card select:focus {
+  border-color: #f97316;
+}
+
+/* ---------- Buttons ---------- */
+.punch-card button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Primary */
+.punch-card .primary {
+  background: #f97316;
+  color: #fff;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.punch-card .primary:hover {
+  background: #ea580c;
+}
+
+/* Secondary */
+.punch-card .secondary {
+  background: #fff7ed;
+  color: #f97316;
+  border: 1px solid #fed7aa;
+}
+
+.punch-card .secondary:hover {
+  background: #ffedd5;
+}
+
+/* Danger */
+.punch-card .danger {
+  background: #dc2626;
+  color: #fff;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.punch-card .danger:hover {
+  background: #b91c1c;
+}
+
+/* Disabled */
+.punch-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Work From Home ---------- */
+.punch-card .wfh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin: 10px 0;
+  color: #374151;
+}
+
+.punch-card .wfh input {
+  accent-color: #f97316;
+}
+
+/* ---------- Message ---------- */
+.punch-card .message {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
