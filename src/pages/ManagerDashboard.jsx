@@ -18,6 +18,7 @@ import DepartmentEmployees from "../components/DepartmentEmployees";
 import DepartmentAttendance from "../components/DepartmentAttendance";
 import DepartmentLeaveRequests from "../components/DepartmentLeaveRequests";
 import HolidayList from "../components/HolidayList";
+import PunchCard from "../components/PunchCard";
 const ManagerDashboard = () => {
   const navigate = useNavigate();
 
@@ -65,6 +66,12 @@ const ManagerDashboard = () => {
             active={activeTab === "attendance"}
             onClick={() => setActiveTab("attendance")}
           />
+<SidebarItem
+  icon={<FaClock />}
+  label="My Attendance"
+  active={activeTab === "myAttendance"}
+  onClick={() => setActiveTab("myAttendance")}
+/>
 
           <SidebarItem
             icon={<FaClock />}
@@ -150,6 +157,12 @@ const ManagerDashboard = () => {
               <DepartmentLeaveRequests />
             </>
           )}
+{activeTab === "myAttendance" && (
+  <>
+    <h3>My Attendance</h3>
+    <PunchCard />
+  </>
+)}
 
           {activeTab === "profile" && <ProfileForm />}
           {activeTab==="Holidays" && <HolidayList/>}

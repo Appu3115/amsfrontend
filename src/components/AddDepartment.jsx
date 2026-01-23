@@ -116,6 +116,7 @@ const AddDepartment = () => {
   };
 
   return (
+    <div className="dept-page">
     <div className="dept-container">
       {/* ===== HEADER ===== */}
       <div className="dept-header">
@@ -212,61 +213,62 @@ const AddDepartment = () => {
         </div>
       )}
 
-{/* ===== EMPLOYEE MODAL ===== */}
-{showEmpModal && selectedDept && (
-  <div className="modal-overlay">
-    <div className="modal-xl">
-      {/* ===== HEADER ===== */}
-      <div className="modal-header">
-        <h3>
-          Employees – {selectedDept.deptName} ({selectedDept.employees.length})
-        </h3>
-        <button className="modal-close" onClick={closeEmployeeModal}>
-          ✕
-        </button>
-      </div>
+                      {/* ===== EMPLOYEE MODAL ===== */}
+                    {showEmpModal && selectedDept && (
+            <div className="modal-overlay">
+              <div className="modal-xl">
+                {/* ===== HEADER ===== */}
+                <div className="modal-header">
+                  <h3>
+                    Employees – {selectedDept.deptName} ({selectedDept.employees.length})
+                  </h3>
+                  <button className="modal-close" onClick={closeEmployeeModal}>
+                    ✕
+                  </button>
+                </div>
 
-      {/* ===== BODY ===== */}
-      <div className="modal-body">
-        {selectedDept.employees.length === 0 ? (
-          <p className="empty-text">No employees in this department</p>
-        ) : (
-          <table className="emp-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Emp ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selectedDept.employees.map((emp) => (
-                <tr key={emp.id}>
-                  <td>{emp.id}</td>
-                  <td>{emp.employeeId}</td>
-                  <td>{emp.firstName} {emp.lastName}</td>
-                  <td>{emp.email}</td>
-                  <td>{emp.role}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+                {/* ===== BODY ===== */}
+                <div className="modal-body">
+                  {selectedDept.employees.length === 0 ? (
+                    <p className="empty-text">No employees in this department</p>
+                  ) : (
+                    <table className="emp-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Emp ID</th>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Role</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedDept.employees.map((emp) => (
+                          <tr key={emp.id}>
+                            <td>{emp.id}</td>
+                            <td>{emp.employeeId}</td>
+                            <td>{emp.firstName} {emp.lastName}</td>
+                            <td>{emp.email}</td>
+                            <td>{emp.role}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
 
-      {/* ===== FOOTER ===== */}
-      <div className="modal-footer">
-        <button className="cancel-btn" onClick={closeEmployeeModal}>
-          Close
-        </button>
-      </div>
+                {/* ===== FOOTER ===== */}
+                <div className="modal-footer">
+                  <button className="cancel-btn" onClick={closeEmployeeModal}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+
     </div>
-  </div>
-)}
-
-
     </div>
   );
 };

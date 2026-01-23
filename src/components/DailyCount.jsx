@@ -35,8 +35,18 @@ const DailyCount = () => {
       });
 
       const recordsData = res.data.records || [];
+      const rawSummary = res.data.summary || {};
 
-      setSummary(res.data.summary || {});
+      // ✅ Treat IN_PROGRESS as PRESENT
+      const presentCount = recordsData.filter(
+        r => r.status === "PRESENT" || r.status === "IN_PROGRESS"
+      ).length;
+
+      setSummary({
+        ...rawSummary,
+        present: presentCount,
+      });
+
       setRecords(recordsData);
       setFiltered(recordsData);
       setActiveCard(STATUSES.ALL);
@@ -57,7 +67,11 @@ const DailyCount = () => {
         break;
 
       case STATUSES.PRESENT:
-        setFiltered(records.filter(r => r.status === "PRESENT"));
+        setFiltered(
+          records.filter(
+            r => r.status === "PRESENT" || r.status === "IN_PROGRESS"
+          )
+        );
         break;
 
       case STATUSES.HALF_DAY:
@@ -76,7 +90,9 @@ const DailyCount = () => {
         setFiltered(
           records.filter(
             r =>
-              (r.status === "PRESENT" || r.status === "HALF_DAY") &&
+              (r.status === "PRESENT" ||
+                r.status === "HALF_DAY" ||
+                r.status === "IN_PROGRESS") &&
               r.lateMinutes > 0
           )
         );
@@ -116,9 +132,16 @@ const DailyCount = () => {
 
         <StatCard
           title="Present Today"
-          value={summary.presentToday}
+          value={summary.present}
           active={activeCard === STATUSES.PRESENT}
           onClick={() => handleCardClick(STATUSES.PRESENT)}
+        />
+
+        <StatCard
+          title="Absent Today"
+          value={summary.absent}
+          active={activeCard === STATUSES.ABSENT}
+          onClick={() => handleCardClick(STATUSES.ABSENT)}
         />
 
         <StatCard
@@ -126,13 +149,6 @@ const DailyCount = () => {
           value={summary.halfDay}
           active={activeCard === STATUSES.HALF_DAY}
           onClick={() => handleCardClick(STATUSES.HALF_DAY)}
-        />
-
-        <StatCard
-          title="Absent Today"
-          value={summary.absentToday}
-          active={activeCard === STATUSES.ABSENT}
-          onClick={() => handleCardClick(STATUSES.ABSENT)}
         />
 
         <StatCard
@@ -175,15 +191,15 @@ const DailyCount = () => {
                 <tr key={i}>
                   <td>{r.employeeId}</td>
                   <td>{r.employeeName}</td>
-                  <td>{r.loginTime || "-"}</td>
-                  <td>{r.logoutTime || "-"}</td>
+                  <td>{formatDateTime(r.loginTime)}</td>
+                  <td>{formatDateTime(r.logoutTime)}</td>
                   <td>
                     <span className={`dc-badge ${r.status.toLowerCase()}`}>
                       {r.status}
                     </span>
                   </td>
-                  <td>{r.lateMinutes || 0}</td>
-                  <td>{r.totalWorkMinutes || 0}</td>
+                  <td>{formatMinutes(r.lateMinutes)}</td>
+                  <td>{formatMinutes(r.totalWorkMinutes)}</td>
                 </tr>
               ))}
             </tbody>
@@ -194,11 +210,40 @@ const DailyCount = () => {
   );
 };
 
+/* ================= HELPERS ================= */
+
 const StatCard = ({ title, value, active, onClick }) => (
   <div className={`dc-card ${active ? "active" : ""}`} onClick={onClick}>
     <p>{title}</p>
     <h2>{value ?? 0}</h2>
   </div>
 );
+
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return "-";
+
+  const date = new Date(dateTime);
+
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+const formatMinutes = (minutes) => {
+  if (!minutes || minutes === 0) return "0m";
+
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hrs === 0) return `${mins}m`;
+  if (mins === 0) return `${hrs}h`;
+
+  return `${hrs}h ${mins}m`;
+};
 
 export default DailyCount;

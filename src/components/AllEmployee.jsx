@@ -1,40 +1,44 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import "../styles/AllEmployee.css";
+import { getUser } from "../utils/auth";
 
 const AllEmployee = () => {
   const [employees, setEmployees] = useState([]);
+  const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Tabs
-  const [activeTab, setActiveTab] = useState("active");
+  /* Tabs */
+  const [activeTab, setActiveTab] = useState("EMPLOYEE");
 
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [selectedShift, setSelectedShift] = useState("");
-  const [startDate, setStartDate] = useState(""); // ✅ NEW
+  /* Logged-in user */
+  const loggedUser = getUser();
+  const loggedInEmployeeId = loggedUser?.employeeId;
+  const loggedInRole = loggedUser?.role;
 
-  const [shifts, setShifts] = useState([]);
-  const [shiftLoading, setShiftLoading] = useState(false);
+  /* Shift modal */
+  const [showShiftModal, setShowShiftModal] = useState(false);
+  const [selectedEmp, setSelectedEmp] = useState(null);
+  const [selectedShiftId, setSelectedShiftId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [shiftMsg, setShiftMsg] = useState("");
 
-  // Save feedback
-  const [saving, setSaving] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  /* ================= FETCH DATA ================= */
 
   useEffect(() => {
     fetchEmployees();
+    fetchShifts();
   }, []);
 
   const fetchEmployees = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/user/getAllEmployees");
       setEmployees(res.data);
     } catch (err) {
+      console.error(err);
       setError("Failed to load employee details");
-      console.log(err)
     } finally {
       setLoading(false);
     }
@@ -42,68 +46,28 @@ const AllEmployee = () => {
 
   const fetchShifts = async () => {
     try {
-      setShiftLoading(true);
       const res = await api.get("/shift/getAllShift");
       setShifts(res.data);
     } catch (err) {
       console.error(err);
-    } finally {
-      setShiftLoading(false);
     }
   };
 
-  const activeEmployees = employees.filter(emp => emp.active);
-  const inactiveEmployees = employees.filter(emp => !emp.active);
+  /* ================= FILTERS ================= */
 
-  const openShiftModal = (employee) => {
-    setSelectedEmployee(employee);
-    setSelectedShift("");
-    setStartDate(""); // reset
-    setSuccessMsg("");
-    setErrorMsg("");
-    setShowModal(true);
-    fetchShifts();
-  };
+  // Remove ADMIN completely
+  const managers = employees.filter(
+    (emp) => emp.role === "MANAGER"
+  );
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedEmployee(null);
-    setSelectedShift("");
-    setStartDate("");
-  };
+  const employeeList = employees.filter(
+    (emp) => emp.role === "EMPLOYEE"
+  );
 
-  // 🔥 ASSIGN / UPDATE SHIFT
-  const handleSaveShift = async () => {
-    if (!selectedEmployee || !selectedShift || !startDate) return;
+  const currentData =
+    activeTab === "MANAGER" ? managers : employeeList;
 
-    setSaving(true);
-    setSuccessMsg("");
-    setErrorMsg("");
-
-    const payload = {
-      employeeId: selectedEmployee.employeeId,
-      shiftId: Number(selectedShift),
-      startDate: startDate, // ✅ USER SELECTED DATE
-    };
-
-    try {
-      let res;
-
-      if (selectedEmployee.shift) {
-        res = await api.put("/employeeshift/update", payload);
-      } else {
-        res = await api.post("/employeeshift/assign", payload);
-      }
-
-      setSuccessMsg(res.data.message);
-      await fetchEmployees();
-      closeModal();
-    } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setSaving(false);
-    }
-  };
+  /* ================= UTILS ================= */
 
   const formatTime12Hour = (time) => {
     if (!time) return "";
@@ -113,6 +77,57 @@ const AllEmployee = () => {
     hour = hour % 12 || 12;
     return `${hour}:${minute} ${ampm}`;
   };
+
+  /* ================= SHIFT MODAL ================= */
+
+  const openShiftModal = (emp) => {
+    setSelectedEmp(emp);
+    setSelectedShiftId("");
+    setStartDate("");
+    setShiftMsg("");
+    setShowShiftModal(true);
+  };
+
+  const closeShiftModal = () => {
+    setShowShiftModal(false);
+    setSelectedEmp(null);
+  };
+
+  const updateShift = async () => {
+    if (!selectedShiftId || !startDate) {
+      setShiftMsg("Shift and start date are required");
+      return;
+    }
+
+    if (!loggedInEmployeeId) {
+      setShiftMsg("Logged-in user not found");
+      return;
+    }
+
+    try {
+      await api.put(
+        "/shift/update-shift",
+        {
+          employeeId: selectedEmp.employeeId,
+          shiftId: selectedShiftId,
+          startDate: startDate,
+        },
+        {
+          params: {
+            employeeId: loggedInEmployeeId,
+          },
+        }
+      );
+
+      setShiftMsg("Shift updated successfully");
+      fetchEmployees();
+      setTimeout(closeShiftModal, 800);
+    } catch (err) {
+      setShiftMsg(err.response?.data || "Shift update failed");
+    }
+  };
+
+  /* ================= RENDER ================= */
 
   if (loading) return <p className="loading-text">Loading employees...</p>;
   if (error) return <p className="error-text">{error}</p>;
@@ -129,14 +144,16 @@ const AllEmployee = () => {
             <th>Role</th>
             <th>Department</th>
             <th>Shift</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {data.map(emp => (
+          {data.map((emp) => (
             <tr key={emp.employeeId}>
               <td>{emp.employeeId}</td>
-              <td>{emp.firstName} {emp.lastName}</td>
+              <td>
+                {emp.firstName} {emp.lastName}
+              </td>
               <td>{emp.email}</td>
               <td>{emp.phone}</td>
               <td>
@@ -147,13 +164,23 @@ const AllEmployee = () => {
               <td>{emp.department?.deptName || "-"}</td>
               <td>
                 {emp.shift
-                  ? `${emp.shift.shiftName} (${formatTime12Hour(emp.shift.startTime)} - ${formatTime12Hour(emp.shift.endTime)})`
+                  ? `${emp.shift.shiftName} (${formatTime12Hour(
+                      emp.shift.startTime
+                    )} - ${formatTime12Hour(emp.shift.endTime)})`
                   : "-"}
               </td>
               <td>
-                <button className="shift-btn" onClick={() => openShiftModal(emp)}>
-                  {emp.shift ? "Update Shift" : "Assign Shift"}
-                </button>
+                {/* Shift update only for EMPLOYEES */}
+                {emp.role === "EMPLOYEE" &&
+                  (loggedInRole === "ADMIN" ||
+                    loggedInRole === "MANAGER") && (
+                    <button
+                      className="shift-btn"
+                      onClick={() => openShiftModal(emp)}
+                    >
+                      Update Shift
+                    </button>
+                  )}
               </td>
             </tr>
           ))}
@@ -162,79 +189,71 @@ const AllEmployee = () => {
     </div>
   );
 
-  const currentData = activeTab === "active" ? activeEmployees : inactiveEmployees;
-
   return (
     <div className="admin-emp-container">
       <h2 className="page-title">Employee Management</h2>
-      <p className="page-subtitle">View all registered employees</p>
+      <p className="page-subtitle">View and manage managers & employees</p>
 
-      {successMsg && <p className="success-text">{successMsg}</p>}
-      {errorMsg && <p className="error-text">{errorMsg}</p>}
-
-      {/* TABS */}
+      {/* ===== TABS ===== */}
       <div className="emp-tabs">
         <button
-          className={`tab-btn ${activeTab === "active" ? "active" : ""}`}
-          onClick={() => setActiveTab("active")}
+          className={`tab-btn ${activeTab === "MANAGER" ? "active" : ""}`}
+          onClick={() => setActiveTab("MANAGER")}
         >
-          Active Employees ({activeEmployees.length})
+          Managers ({managers.length})
         </button>
 
         <button
-          className={`tab-btn ${activeTab === "inactive" ? "inactive" : ""}`}
-          onClick={() => setActiveTab("inactive")}
+          className={`tab-btn ${activeTab === "EMPLOYEE" ? "active" : ""}`}
+          onClick={() => setActiveTab("EMPLOYEE")}
         >
-          Inactive Employees ({inactiveEmployees.length})
+          Employees ({employeeList.length})
         </button>
       </div>
 
-      {currentData.length > 0 ? renderTable(currentData) : <p className="empty-text">No employees found</p>}
+      {currentData.length > 0 ? (
+        renderTable(currentData)
+      ) : (
+        <p className="empty-text">No records found</p>
+      )}
 
-      {/* MODAL */}
-      {showModal && (
-        <div className="modal-backdrop">
+      {/* ===== SHIFT MODAL ===== */}
+      {showShiftModal && selectedEmp && (
+        <div className="modal-overlay">
           <div className="modal">
-            <h3>{selectedEmployee?.shift ? "Update Shift" : "Assign Shift"}</h3>
+            <h3>Update Shift</h3>
 
-            <p className="modal-emp-name">
-              Employee: <strong>{selectedEmployee?.firstName}</strong>
+            <p className="emp-name">
+              {selectedEmp.firstName} ({selectedEmp.employeeId})
             </p>
 
-            {/* DATE PICKER */}
-            <input
-              type="date"
-              className="shift-select"
-              value={startDate}
-              min={new Date().toISOString().split("T")[0]}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-
-            {/* SHIFT SELECT */}
+            <label>Shift</label>
             <select
-              className="shift-select"
-              value={selectedShift}
-              onChange={(e) => setSelectedShift(e.target.value)}
+              value={selectedShiftId}
+              onChange={(e) => setSelectedShiftId(e.target.value)}
             >
-              <option value="">Select Shift</option>
-              {shiftLoading && <option disabled>Loading shifts...</option>}
-              {!shiftLoading && shifts.map(shift => (
-                <option key={shift.id} value={shift.id}>
-                  {shift.shiftName} ({formatTime12Hour(shift.startTime)} - {formatTime12Hour(shift.endTime)})
+              <option value="">Select shift</option>
+              {shifts.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.shiftName} ({formatTime12Hour(s.startTime)} -{" "}
+                  {formatTime12Hour(s.endTime)})
                 </option>
               ))}
             </select>
 
+            <label>Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+
+            {shiftMsg && <p className="msg">{shiftMsg}</p>}
+
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={closeModal}>
+              <button onClick={updateShift}>Save</button>
+              <button className="cancel" onClick={closeShiftModal}>
                 Cancel
-              </button>
-              <button
-                className="btn-primary"
-                disabled={!selectedShift || !startDate || saving}
-                onClick={handleSaveShift}
-              >
-                {saving ? "Saving..." : selectedEmployee?.shift ? "Update Shift" : "Assign Shift"}
               </button>
             </div>
           </div>

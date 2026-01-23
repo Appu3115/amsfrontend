@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import "../styles/CreateManager.css"; // 🔥 reuse same CSS
+import "../styles/CreateManager.css"; // reuse same CSS
 
 const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
   const manager = JSON.parse(sessionStorage.getItem("user_manager"));
@@ -10,7 +10,8 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
     lastName: "",
     email: "",
     phone: "",
-    joinDate: ""
+    joinDate: "",
+    status: "PROBATION", // ✅ DEFAULT
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -68,7 +69,7 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
     <div className="modal-overlay">
       <div className="modal-box">
 
-        {/* ✅ SAME CLOSE BUTTON */}
+        {/* Close button */}
         <button className="close-btn" onClick={handleClose}>×</button>
 
         <div className="modal-header">
@@ -116,6 +117,17 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
             onChange={handleChange}
             required
           />
+
+          {/* ✅ NEW STATUS DROPDOWN */}
+          <select
+            name="status"
+            value={form.status}
+            onChange={handleChange}
+            required
+          >
+            <option value="PROBATION">Probation</option>
+            <option value="CONFIRMED">Confirmed</option>
+          </select>
 
           {error && <p className="error-text">{error}</p>}
           {success && <p className="success-text">{success}</p>}

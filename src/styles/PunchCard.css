@@ -1,4 +1,27 @@
 /* ===============================
+   PUNCH CARD LAYOUT
+================================ */
+
+.punch-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 32px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Sticky left card */
+.punch-left {
+  position: sticky;
+  top: 20px;
+}
+
+/* Right section */
+.punch-right {
+  width: 100%;
+}
+
+/* ===============================
    PUNCH CARD (SCOPED ONLY)
 ================================ */
 
@@ -17,7 +40,7 @@
   text-align: center;
   font-size: 18px;
   font-weight: 600;
-  color: #f97316; /* orange */
+  color: #f97316;
   margin-bottom: 20px;
 }
 
@@ -28,6 +51,11 @@
   font-weight: 700;
   color: #111827;
   margin-bottom: 6px;
+}
+
+/* Bigger timer when logged in */
+.punch-card .timer.big {
+  font-size: 40px;
 }
 
 /* ---------- Status ---------- */
@@ -75,11 +103,15 @@
   transition: all 0.2s ease;
 }
 
+/* Full width helper */
+.punch-card .full {
+  width: 100%;
+}
+
 /* Primary */
 .punch-card .primary {
   background: #f97316;
   color: #fff;
-  width: 100%;
   margin-top: 10px;
 }
 
@@ -102,7 +134,6 @@
 .punch-card .danger {
   background: #dc2626;
   color: #fff;
-  width: 100%;
   margin-top: 10px;
 }
 
@@ -137,4 +168,22 @@
   font-size: 13px;
   font-weight: 500;
   color: #374151;
+}
+
+/* ===============================
+   RESPONSIVE (MOBILE / TABLET)
+================================ */
+
+@media (max-width: 1024px) {
+  .punch-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .punch-left {
+    position: static;
+  }
+
+  .punch-card {
+    max-width: 100%;
+  }
 }

@@ -68,7 +68,8 @@ const DepartmentAttendance = () => {
               </tr>
             ) : (
               data.map((att) => (
-                <tr key={att.attendanceId}>
+                <tr key={`${att.employee.employeeId}-${att.attendanceDate}`}>
+
                   <td>{att.employee.employeeId}</td>
                   <td>{att.employee.name}</td>
                   <td>{att.attendanceDate}</td>
