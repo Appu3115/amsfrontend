@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import api from "../api/axios";
 import "../styles/EmployeeWorkTracker.css";
 
@@ -12,7 +12,7 @@ const formatSeconds = (seconds = 0) =>
   new Date(seconds * 1000).toISOString().substring(11, 19);
 
 const EmployeeWorkTracker = ({ employeeId }) => {
-  const [status, setStatus] = useState("IDLE"); // WORK / BREAK / LUNCH / IDLE
+  const [status, setStatus] = useState("IDLE");
   const [runningSeconds, setRunningSeconds] = useState(0);
 
   const [summary, setSummary] = useState({
@@ -23,123 +23,115 @@ const EmployeeWorkTracker = ({ employeeId }) => {
   });
 
   const timerRef = useRef(null);
-  const idleTimeoutRef = useRef(null);
 
   /* ================= TIMER ================= */
-  const startTimer = () => {
+  const startTimer = (initialSeconds) => {
     clearInterval(timerRef.current);
-    const start = Date.now();
+    setRunningSeconds(initialSeconds);
 
     timerRef.current = setInterval(() => {
-      setRunningSeconds(Math.floor((Date.now() - start) / 1000));
+      setRunningSeconds((prev) => prev + 1);
     }, 1000);
   };
 
   const stopTimer = () => {
     clearInterval(timerRef.current);
-    setRunningSeconds(0);
+    timerRef.current = null;
   };
 
-  /* ================= LOAD TODAY SUMMARY ================= */
-  const loadSummary = async () => {
+  /* ================= LOAD CURRENT SESSION ================= */
+  const loadCurrentStatus = useCallback(async () => {
+    try {
+      const res = await api.get(`/attendance/current/${employeeId}`);
+
+      const {
+        loggedIn,
+        status,
+        runningSeconds
+      } = res.data;
+
+      if (!loggedIn) {
+        setStatus("IDLE");
+        stopTimer();
+        setRunningSeconds(0);
+        return;
+      }
+
+      setStatus(status);
+
+      if (status !== "IDLE") {
+        startTimer(runningSeconds || 0);
+      } else {
+        stopTimer();
+        setRunningSeconds(0);
+      }
+    } catch (err) {
+      console.error("Failed to load current session", err);
+    }
+  }, [employeeId]);
+
+  /* ================= LOAD SUMMARY ================= */
+  const loadSummary = useCallback(async () => {
     try {
       const res = await api.get(`/attendance/employee/${employeeId}`);
       const today = new Date().toISOString().split("T")[0];
 
-      const todayRecord = res.data.find(
-        (r) => r.attendanceDate === today
-      );
+      const todayRecord = Array.isArray(res.data)
+        ? res.data.find((r) => r.attendanceDate === today)
+        : null;
 
       if (todayRecord) {
         setSummary({
-          work: todayRecord.totalWorkMinutes || 0,
-          break: todayRecord.totalBreakMinutes || 0,
-          idle: todayRecord.totalIdleMinutes || 0,
-          productive: todayRecord.productiveMinutes || 0,
+          work: todayRecord.totalWorkMinutes ?? 0,
+          break: todayRecord.totalBreakMinutes ?? 0,
+          idle: todayRecord.idleMinutes ?? 0,
+          productive: todayRecord.productiveMinutes ?? 0,
         });
+      } else {
+        setSummary({ work: 0, break: 0, idle: 0, productive: 0 });
       }
     } catch (err) {
       console.error("Failed to load summary", err);
     }
-  };
+  }, [employeeId]);
 
   /* ================= ACTIONS ================= */
   const pause = async (type) => {
-    try {
-      await api.post("/attendance/pause", null, {
-        params: { employeeId, type },
-      });
+    await api.post("/attendance/pause", null, {
+      params: { employeeId, type },
+    });
 
-      setStatus(type);
-      stopTimer();
-      loadSummary();
-    } catch (err) {
-      console.error("Pause failed", err.response?.data);
-    }
+    await loadCurrentStatus();
   };
 
   const resume = async () => {
-    try {
-      await api.post("/attendance/resume", null, {
-        params: { employeeId },
-      });
+    await api.post("/attendance/resume", null, {
+      params: { employeeId },
+    });
 
-      setStatus("WORK");
-      startTimer();
-      loadSummary();
-    } catch (err) {
-      console.error("Resume failed", err.response?.data);
-    }
+    await loadCurrentStatus();
+    await loadSummary(); // ✅ break/lunch closed → totals updated
   };
-
-  /* ================= IDLE TRACKING ================= */
-  useEffect(() => {
-    const markActive = async () => {
-      if (status !== "WORK") return;
-
-      await api.post("/attendance/active", null, {
-        params: { employeeId },
-      });
-
-      clearTimeout(idleTimeoutRef.current);
-
-      idleTimeoutRef.current = setTimeout(async () => {
-        await api.post("/attendance/idle", null, {
-          params: { employeeId },
-        });
-
-        setStatus("IDLE");
-        stopTimer();
-        loadSummary();
-      }, 15 * 60 * 1000); // 15 minutes
-    };
-
-    window.addEventListener("mousemove", markActive);
-    window.addEventListener("keydown", markActive);
-
-    return () => {
-      window.removeEventListener("mousemove", markActive);
-      window.removeEventListener("keydown", markActive);
-      clearTimeout(idleTimeoutRef.current);
-    };
-  }, [employeeId, status]);
 
   /* ================= INITIAL LOAD ================= */
   useEffect(() => {
+    loadCurrentStatus();
     loadSummary();
-  }, []);
+
+    return () => stopTimer();
+  }, [loadCurrentStatus, loadSummary]);
 
   return (
     <div className="tracker-container">
       <h2 className="tracker-title">My Work Session</h2>
 
-      {/* STATUS + LIVE TIMER */}
+      {/* STATUS + TIMER */}
       <div className="status-card">
         <div className={`status ${status.toLowerCase()}`}>{status}</div>
         <div className="timer">{formatSeconds(runningSeconds)}</div>
       </div>
 
-      {/* ACTION BUTTONS */}
+      {/* ACTIONS */}
       <div className="actions">
         <button onClick={() => pause("BREAK")} disabled={status !== "WORK"}>
           Break
