@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import api from "../api/axios";
 import "../styles/ProfileForm.css";
 import ChangePassword from "../components/ChangePassword";
+import MedicalInfoModal from "../components/MedicalInfoModal";
 
 const CLOUD_NAME = "dangvotkt";
 const UPLOAD_PRESET = "amsproject";
@@ -16,8 +17,11 @@ const ProfileForm = () => {
   const employeeId = user?.employeeId;
 
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showMedicalModal, setShowMedicalModal] = useState(false);
 
   const [profile, setProfile] = useState(null);
+  const [medical, setMedical] = useState(null);
+
   const [form, setForm] = useState({
     imageURL: "",
     address: "",
@@ -37,17 +41,30 @@ const ProfileForm = () => {
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
-  /* ================= LOAD PROFILE ================= */
+  /* ================= LOAD PROFILE + MEDICAL ================= */
   const loadProfile = async () => {
     try {
+      // Profile
       const res = await api.get(`/user/getprofile/${employeeId}`);
       setProfile(res.data);
+
       setForm({
         imageURL: res.data.imageURL || "",
         address: res.data.address || "",
         emergencyContact1: res.data.emergencyContact1 || "",
         emergencyContact2: res.data.emergencyContact2 || "",
       });
+
+      // Medical info (optional)
+      try {
+        const medicalRes = await api.get(
+          `/user/getprofile/medical/${employeeId}`
+        );
+        setMedical(medicalRes.data);
+      } catch {
+        setMedical(null);
+      }
+
     } finally {
       setLoading(false);
     }
@@ -60,6 +77,7 @@ const ProfileForm = () => {
   /* ================= IMAGE UPLOAD ================= */
   const uploadImage = async (file) => {
     setUploading(true);
+
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", UPLOAD_PRESET);
@@ -77,6 +95,7 @@ const ProfileForm = () => {
   /* ================= SAVE PROFILE ================= */
   const handleSave = async () => {
     setSaving(true);
+
     try {
       let imageURL = form.imageURL;
 
@@ -84,10 +103,7 @@ const ProfileForm = () => {
         imageURL = await uploadImage(selectedFile);
       }
 
-      const payload = {
-        ...form,
-        imageURL,
-      };
+      const payload = { ...form, imageURL };
 
       if (!profile?.address) {
         await api.post(`/user/createprofile/${employeeId}`, payload);
@@ -100,12 +116,13 @@ const ProfileForm = () => {
       setZoom(1);
       setPosition({ x: 0, y: 0 });
       loadProfile();
+
     } finally {
       setSaving(false);
     }
   };
 
-  /* ================= DRAG ================= */
+  /* ================= IMAGE DRAG ================= */
   const handleMouseDown = (e) => {
     setDragging(true);
     dragStart.current = {
@@ -124,7 +141,9 @@ const ProfileForm = () => {
 
   const handleMouseUp = () => setDragging(false);
 
-  if (loading) return <div className="profile-loading">Loading profile…</div>;
+  if (loading) {
+    return <div className="profile-loading">Loading profile…</div>;
+  }
 
   return (
     <div className="profile-page">
@@ -160,6 +179,13 @@ const ProfileForm = () => {
           >
             Change Password
           </button>
+
+          <button
+            className="edit-btn secondary"
+            onClick={() => setShowMedicalModal(true)}
+          >
+            Medical Info
+          </button>
         </div>
       </div>
 
@@ -189,6 +215,32 @@ const ProfileForm = () => {
             <Info wide label="Address" value={profile?.address || "-"} />
             <Info label="Emergency Contact 1" value={profile?.emergencyContact1 || "-"} />
             <Info label="Emergency Contact 2" value={profile?.emergencyContact2 || "-"} />
+          </div>
+        </section>
+
+        {/* ===== MEDICAL INFO ===== */}
+        <section>
+          <h3>Medical Information</h3>
+          <div className="info-grid">
+            <Info
+              label="Medical Issue"
+              value={
+                medical?.hasMedicalIssue === true
+                  ? "Yes"
+                  : medical?.hasMedicalIssue === false
+                  ? "No"
+                  : "-"
+              }
+            />
+            <Info
+              wide
+              label="Medical Details"
+              value={
+                medical?.hasMedicalIssue
+                  ? medical?.medicalDetails || "-"
+                  : "Not Applicable"
+              }
+            />
           </div>
         </section>
       </div>
@@ -277,9 +329,19 @@ const ProfileForm = () => {
         </div>
       )}
 
-      {/* ===== CHANGE PASSWORD MODAL ===== */}
+      {/* ===== CHANGE PASSWORD ===== */}
       {showChangePassword && (
         <ChangePassword onClose={() => setShowChangePassword(false)} />
+      )}
+
+      {/* ===== MEDICAL MODAL ===== */}
+      {showMedicalModal && (
+        <MedicalInfoModal
+          onClose={() => {
+            setShowMedicalModal(false);
+            loadProfile(); // 🔄 refresh medical info
+          }}
+        />
       )}
     </div>
   );

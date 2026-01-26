@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import api from "../api/axios";
 import "../styles/LeaveRequest.css";
 import { getUser } from "../utils/auth";
+
 const CLOUD_NAME = "dangvotkt";
 const UPLOAD_PRESET = "amsproject";
 
 const LeaveRequest = ({ onClose }) => {
 
   const user = getUser();
-   const employeeId = user.employeeId?.toUpperCase();
+  const employeeId = user.employeeId?.toUpperCase();
 
   const [form, setForm] = useState({
     leaveType: "",
     reason: "",
+    description: "",
     startDate: "",
     endDate: "",
   });
@@ -21,7 +23,7 @@ const LeaveRequest = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ===== Handlers =====
+  /* ================= HANDLERS ================= */
 
   const handleChange = (e) => {
     setForm(prev => ({
@@ -34,7 +36,8 @@ const LeaveRequest = ({ onClose }) => {
     setFiles(Array.from(e.target.files));
   };
 
-  // 🔼 Upload single file to Cloudinary
+  /* ================= CLOUD UPLOAD ================= */
+
   const uploadToCloudinary = async (file) => {
     const data = new FormData();
     data.append("file", file);
@@ -42,10 +45,7 @@ const LeaveRequest = ({ onClose }) => {
 
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
-      {
-        method: "POST",
-        body: data,
-      }
+      { method: "POST", body: data }
     );
 
     const result = await res.json();
@@ -56,6 +56,8 @@ const LeaveRequest = ({ onClose }) => {
 
     return result.secure_url;
   };
+
+  /* ================= SUBMIT ================= */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,7 +71,7 @@ const LeaveRequest = ({ onClose }) => {
     }
 
     try {
-      // 📤 Upload files first
+      // Upload proofs
       let proofUrls = [];
 
       if (files.length > 0) {
@@ -78,10 +80,11 @@ const LeaveRequest = ({ onClose }) => {
         );
       }
 
-      // 📦 Send JSON to backend
+      // Payload strictly matches DTO
       const payload = {
         leaveType: form.leaveType,
         reason: form.reason,
+        description: form.description || null,
         startDate: form.startDate,
         endDate: form.endDate,
         proofUrls,
@@ -107,7 +110,7 @@ const LeaveRequest = ({ onClose }) => {
     }
   };
 
-  // ===== UI =====
+  /* ================= UI ================= */
 
   return (
     <div className="leave-modal-overlay">
@@ -126,9 +129,9 @@ const LeaveRequest = ({ onClose }) => {
             required
           >
             <option value="">Select</option>
-            <option value="CASUAL">Casual</option>
-            <option value="SICK">Sick</option>
-            <option value="EARNED">Earned</option>
+            <option value="CASUAL">Casual Leave</option>
+            <option value="SICK">Sick Leave</option>
+            <option value="EARNED">Earned Leave</option>
           </select>
 
           <label>Reason</label>
@@ -143,6 +146,15 @@ const LeaveRequest = ({ onClose }) => {
             <option value="FAMILY">Family</option>
             <option value="FEVER">Fever</option>
           </select>
+
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Brief description"
+            rows={3}
+          />
 
           <div className="date-row">
             <div>

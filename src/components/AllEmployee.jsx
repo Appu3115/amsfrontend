@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import "../styles/AllEmployee.css";
 import { getUser } from "../utils/auth";
+import EmployeeProfileModal from "./EmployeeProfileModal";
 
 const AllEmployee = () => {
   const [employees, setEmployees] = useState([]);
@@ -23,6 +24,9 @@ const AllEmployee = () => {
   const [selectedShiftId, setSelectedShiftId] = useState("");
   const [startDate, setStartDate] = useState("");
   const [shiftMsg, setShiftMsg] = useState("");
+
+  /* Profile modal */
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
   /* ================= FETCH DATA ================= */
 
@@ -55,14 +59,8 @@ const AllEmployee = () => {
 
   /* ================= FILTERS ================= */
 
-  // Remove ADMIN completely
-  const managers = employees.filter(
-    (emp) => emp.role === "MANAGER"
-  );
-
-  const employeeList = employees.filter(
-    (emp) => emp.role === "EMPLOYEE"
-  );
+  const managers = employees.filter((emp) => emp.role === "MANAGER");
+  const employeeList = employees.filter((emp) => emp.role === "EMPLOYEE");
 
   const currentData =
     activeTab === "MANAGER" ? managers : employeeList;
@@ -99,23 +97,16 @@ const AllEmployee = () => {
       return;
     }
 
-    if (!loggedInEmployeeId) {
-      setShiftMsg("Logged-in user not found");
-      return;
-    }
-
     try {
       await api.put(
         "/shift/update-shift",
         {
           employeeId: selectedEmp.employeeId,
           shiftId: selectedShiftId,
-          startDate: startDate,
+          startDate,
         },
         {
-          params: {
-            employeeId: loggedInEmployeeId,
-          },
+          params: { employeeId: loggedInEmployeeId },
         }
       );
 
@@ -147,21 +138,37 @@ const AllEmployee = () => {
             <th>Actions</th>
           </tr>
         </thead>
+
         <tbody>
           {data.map((emp) => (
             <tr key={emp.employeeId}>
               <td>{emp.employeeId}</td>
+
+              {/* ✅ CLICK NAME TO OPEN PROFILE */}
               <td>
-                {emp.firstName} {emp.lastName}
+                <span
+                  className="emp-name-link"
+                  onClick={() => {
+                    if (loggedInRole === "ADMIN") {
+                      setSelectedEmployeeId(emp.employeeId);
+                    }
+                  }}
+                >
+                  {emp.firstName} {emp.lastName}
+                </span>
               </td>
+
               <td>{emp.email}</td>
               <td>{emp.phone}</td>
+
               <td>
                 <span className={`role-badge ${emp.role.toLowerCase()}`}>
                   {emp.role}
                 </span>
               </td>
+
               <td>{emp.department?.deptName || "-"}</td>
+
               <td>
                 {emp.shift
                   ? `${emp.shift.shiftName} (${formatTime12Hour(
@@ -169,8 +176,9 @@ const AllEmployee = () => {
                     )} - ${formatTime12Hour(emp.shift.endTime)})`
                   : "-"}
               </td>
+
               <td>
-                {/* Shift update only for EMPLOYEES */}
+                {/* UPDATE SHIFT */}
                 {emp.role === "EMPLOYEE" &&
                   (loggedInRole === "ADMIN" ||
                     loggedInRole === "MANAGER") && (
@@ -194,7 +202,7 @@ const AllEmployee = () => {
       <h2 className="page-title">Employee Management</h2>
       <p className="page-subtitle">View and manage managers & employees</p>
 
-      {/* ===== TABS ===== */}
+      {/* TABS */}
       <div className="emp-tabs">
         <button
           className={`tab-btn ${activeTab === "MANAGER" ? "active" : ""}`}
@@ -217,7 +225,7 @@ const AllEmployee = () => {
         <p className="empty-text">No records found</p>
       )}
 
-      {/* ===== SHIFT MODAL ===== */}
+      {/* SHIFT MODAL */}
       {showShiftModal && selectedEmp && (
         <div className="modal-overlay">
           <div className="modal">
@@ -258,6 +266,14 @@ const AllEmployee = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PROFILE MODAL */}
+      {selectedEmployeeId && (
+        <EmployeeProfileModal
+          employeeId={selectedEmployeeId}
+          onClose={() => setSelectedEmployeeId(null)}
+        />
       )}
     </div>
   );

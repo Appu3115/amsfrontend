@@ -1,27 +1,28 @@
-.leave-modal-overlay {
+/* ================= OVERLAY ================= */
+.medical-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 3000;
 }
 
 /* ================= MODAL ================= */
-.leave-modal {
+.medical-modal {
   width: 420px;
   max-width: 92%;
   background: #ffffff;
   border-radius: 16px;
   padding: 28px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  animation: pop 0.3s ease;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: medicalPop 0.25s ease;
 }
 
-@keyframes pop {
+@keyframes medicalPop {
   from {
-    transform: scale(0.92);
+    transform: scale(0.95);
     opacity: 0;
   }
   to {
@@ -30,63 +31,56 @@
   }
 }
 
-.leave-modal h2 {
-  margin-bottom: 18px;
-  color: #ea580c;
+.medical-modal h2 {
   text-align: center;
+  color: #ea580c;
   font-size: 20px;
   font-weight: 700;
+  margin-bottom: 18px;
 }
 
 /* ================= FORM ================= */
-.leave-modal label {
+.medical-modal label {
+  display: block;
   font-size: 13px;
   font-weight: 600;
-  margin-top: 14px;
-  display: block;
   color: #374151;
+  margin-bottom: 6px;
 }
 
-.leave-modal input,
-.leave-modal select,
-.leave-modal textarea {
+.medical-modal textarea {
   width: 100%;
-  padding: 10px 12px;
-  margin-top: 6px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   border: 1px solid #e5e7eb;
   font-size: 14px;
-  background: #ffffff;
+  resize: vertical;
+  min-height: 80px;
   transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-.leave-modal textarea {
-  resize: vertical;
-  min-height: 70px;
-}
-
-.leave-modal input:focus,
-.leave-modal select:focus,
-.leave-modal textarea:focus {
+.medical-modal textarea:focus {
   outline: none;
   border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
 }
 
-/* ================= DATE ROW ================= */
-.date-row {
+/* ================= CHECKBOX ================= */
+.checkbox-row {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
 }
 
-.date-row > div {
-  flex: 1;
-}
-
-/* ================= FILE INPUT ================= */
-.leave-modal input[type="file"] {
-  padding: 6px;
-  font-size: 13px;
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: #f97316;
+  cursor: pointer;
 }
 
 /* ================= BUTTONS ================= */
@@ -98,12 +92,12 @@
 }
 
 .btn-row button {
-  padding: 10px 18px;
+  padding: 10px 20px;
   border-radius: 10px;
   border: none;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
@@ -135,7 +129,7 @@
   color: #b91c1c;
   padding: 8px 12px;
   border-radius: 10px;
+  font-size: 13px;
   margin-bottom: 12px;
   text-align: center;
-  font-size: 13px;
 }

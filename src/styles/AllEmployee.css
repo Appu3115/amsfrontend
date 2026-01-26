@@ -68,6 +68,17 @@
   background: #fffaf5;
 }
 
+/* ===== CLICKABLE EMPLOYEE NAME ===== */
+.emp-name-link {
+  color: #0ea5e9;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.emp-name-link:hover {
+  text-decoration: underline;
+}
+
 /* ===== ROLE BADGES ===== */
 .role-badge {
   padding: 4px 12px;
@@ -141,7 +152,7 @@
   z-index: 2000;
 }
 
-/* Modal card */
+/* Shift Modal card */
 .modal {
   background: white;
   padding: 26px;
@@ -231,6 +242,117 @@
 
 .modal-actions .cancel:hover {
   background: #d1d5db;
+}
+
+/* ================= PROFILE MODAL ================= */
+
+.profile-modal {
+  width: 650px;
+  max-width: 95vw;
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+
+/* Profile image */
+.profile-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--orange);
+  background: var(--orange-light);
+}
+
+/* Name & meta */
+.profile-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-header .muted {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-badge.active {
+  color: var(--green);
+}
+
+.status-badge.inactive {
+  color: var(--red);
+}
+
+/* ===== PROFILE INFO GRID ===== */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.profile-grid .full {
+  grid-column: span 2;
+}
+
+.profile-grid label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.profile-grid p {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+/* ===== MEDICAL INFO ===== */
+.medical-card {
+  background: var(--orange-light);
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+}
+
+.medical-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--orange-dark);
+  margin-bottom: 10px;
+}
+
+.medical-card p {
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+/* ===== PROFILE MODAL ACTIONS ===== */
+.profile-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 /* ================= TABS ================= */
