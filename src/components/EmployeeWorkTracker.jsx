@@ -25,8 +25,8 @@ const EmployeeWorkTracker = ({ employeeId }) => {
   const timerRef = useRef(null);
 
   /* ================= TIMER ================= */
-  const startTimer = (initialSeconds) => {
-    clearInterval(timerRef.current);
+  const startTimer = (initialSeconds = 0) => {
+    stopTimer();
     setRunningSeconds(initialSeconds);
 
     timerRef.current = setInterval(() => {
@@ -35,24 +35,22 @@ const EmployeeWorkTracker = ({ employeeId }) => {
   };
 
   const stopTimer = () => {
-    clearInterval(timerRef.current);
-    timerRef.current = null;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   };
 
   /* ================= LOAD CURRENT SESSION ================= */
   const loadCurrentStatus = useCallback(async () => {
     try {
       const res = await api.get(`/attendance/current/${employeeId}`);
+      const { loggedIn, status, runningSeconds } = res.data;
 
-      const {
-        loggedIn,
-        status,
-        runningSeconds
-      } = res.data;
+      stopTimer();
 
       if (!loggedIn) {
         setStatus("IDLE");
-        stopTimer();
         setRunningSeconds(0);
         return;
       }
@@ -62,7 +60,6 @@ const EmployeeWorkTracker = ({ employeeId }) => {
       if (status !== "IDLE") {
         startTimer(runningSeconds || 0);
       } else {
-        stopTimer();
         setRunningSeconds(0);
       }
     } catch (err) {
@@ -96,21 +93,43 @@ const EmployeeWorkTracker = ({ employeeId }) => {
   }, [employeeId]);
 
   /* ================= ACTIONS ================= */
-  const pause = async (type) => {
-    await api.post("/attendance/pause", null, {
-      params: { employeeId, type },
-    });
 
-    await loadCurrentStatus();
+  const pause = async (type) => {
+    // 🔥 Instant UI update
+    setStatus(type);
+    startTimer(0);
+
+    try {
+      await api.post("/attendance/pause", null, {
+        params: { employeeId, type },
+      });
+
+      await loadCurrentStatus();
+    } catch (err) {
+      console.error("Pause failed", err);
+      await loadCurrentStatus(); // rollback
+    }
   };
 
   const resume = async () => {
-    await api.post("/attendance/resume", null, {
-      params: { employeeId },
-    });
+    // 🔥 Instant UI update
+    setStatus("WORK");
+    startTimer(0);
 
-    await loadCurrentStatus();
-    await loadSummary(); // ✅ break/lunch closed → totals updated
+    try {
+      await api.post("/attendance/resume", null, {
+        params: { employeeId },
+      });
+
+      // Sync backend truth
+      await Promise.all([
+        loadCurrentStatus(),
+        loadSummary(),
+      ]);
+    } catch (err) {
+      console.error("Resume failed", err);
+      await loadCurrentStatus(); // rollback
+    }
   };
 
   /* ================= INITIAL LOAD ================= */
@@ -127,19 +146,38 @@ const EmployeeWorkTracker = ({ employeeId }) => {
 
       {/* STATUS + TIMER */}
       <div className="status-card">
-        <div className={`status ${status.toLowerCase()}`}>{status}</div>
-        <div className="timer">{formatSeconds(runningSeconds)}</div>
+        <div className={`status ${status.toLowerCase()}`}>
+          {status}
+        </div>
+        <div className="timer">
+          {formatSeconds(runningSeconds)}
+        </div>
       </div>
 
       {/* ACTIONS */}
       <div className="actions">
-        <button onClick={() => pause("BREAK")} disabled={status !== "WORK"}>
+        <button
+          type="button"
+          onClick={() => pause("BREAK")}
+          disabled={status !== "WORK"}
+        >
           Break
         </button>
-        <button onClick={() => pause("LUNCH")} disabled={status !== "WORK"}>
+
+        <button
+          type="button"
+          onClick={() => pause("LUNCH")}
+          disabled={status !== "WORK"}
+        >
           Lunch
         </button>
-        <button className="dark" onClick={resume} disabled={status === "WORK"}>
+
+        <button
+          type="button"
+          className="dark"
+          onClick={resume}
+          disabled={status === "WORK"}
+        >
           Resume
         </button>
       </div>

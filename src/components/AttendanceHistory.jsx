@@ -44,7 +44,8 @@ const AttendanceHistory = () => {
       );
 
       // ✅ IMPORTANT FIX: extract list from ResponseEntity
-      setAttendance(res.data?.body || []);
+      setAttendance(res.data || []);
+
     } catch (err) {
       console.error(err);
       setError("Failed to load attendance");

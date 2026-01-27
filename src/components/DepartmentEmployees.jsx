@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import "../styles/DepartmentEmployees.css";
+import EmployeeProfileModal from "./EmployeeProfileModal";
 
 const TABS = {
   ALL: "ALL",
@@ -15,6 +16,9 @@ const DepartmentEmployees = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
 
+  /* ✅ PROFILE MODAL STATE */
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+
   const managerData = sessionStorage.getItem("user_manager");
   const manager = managerData ? JSON.parse(managerData) : null;
 
@@ -26,6 +30,7 @@ const DepartmentEmployees = () => {
     applyFilter(activeTab);
   }, [employees, activeTab]);
 
+  /* ================= LOAD ================= */
   const loadEmployees = async () => {
     try {
       if (!manager?.employeeId) return;
@@ -46,10 +51,14 @@ const DepartmentEmployees = () => {
   const applyFilter = (tab) => {
     switch (tab) {
       case TABS.PROBATION:
-        setFiltered(employees.filter(e => e.status === "PROBATION"));
+        setFiltered(
+          employees.filter((e) => e.status === "PROBATION")
+        );
         break;
       case TABS.CONFIRMED:
-        setFiltered(employees.filter(e => e.status === "CONFIRMED"));
+        setFiltered(
+          employees.filter((e) => e.status === "CONFIRMED")
+        );
         break;
       default:
         setFiltered(employees);
@@ -61,18 +70,14 @@ const DepartmentEmployees = () => {
     try {
       setActionLoading(employeeId);
 
-      await api.put(
-        "/user/confirm-employee",
-        null,
-        {
-          params: {
-            employeeId,
-            managerEmployeeId: manager.employeeId,
-          },
-        }
-      );
+      await api.put("/user/confirm-employee", null, {
+        params: {
+          employeeId,
+          managerEmployeeId: manager.employeeId,
+        },
+      });
 
-      await loadEmployees(); // refresh
+      await loadEmployees();
     } catch (err) {
       alert(err.response?.data || "Failed to confirm employee");
     } finally {
@@ -80,7 +85,13 @@ const DepartmentEmployees = () => {
     }
   };
 
-  if (loading) return <div className="table-loader">Loading employees...</div>;
+  if (loading) {
+    return (
+      <div className="table-loader">
+        Loading employees...
+      </div>
+    );
+  }
 
   return (
     <div className="dept-table-wrapper">
@@ -88,15 +99,19 @@ const DepartmentEmployees = () => {
       {/* ===== HEADER ===== */}
       <div className="dept-table-header">
         <h3>Department Employees</h3>
-        <span className="count-pill">{filtered.length}</span>
+        <span className="count-pill">
+          {filtered.length}
+        </span>
       </div>
 
       {/* ===== TABS ===== */}
       <div className="emp-tabs">
-        {Object.values(TABS).map(tab => (
+        {Object.values(TABS).map((tab) => (
           <button
             key={tab}
-            className={`emp-tab ${activeTab === tab ? "active" : ""}`}
+            className={`emp-tab ${
+              activeTab === tab ? "active" : ""
+            }`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -115,7 +130,9 @@ const DepartmentEmployees = () => {
               <th>Phone</th>
               <th>Status</th>
               <th>Shift</th>
-              {activeTab === TABS.PROBATION && <th>Action</th>}
+              {activeTab === TABS.PROBATION && (
+                <th>Action</th>
+              )}
             </tr>
           </thead>
 
@@ -123,32 +140,53 @@ const DepartmentEmployees = () => {
             {filtered.map((emp) => (
               <tr key={emp.employeeId}>
                 <td>{emp.employeeId}</td>
-                <td>{emp.firstName} {emp.lastName}</td>
+
+                {/* ✅ CLICK NAME TO OPEN PROFILE */}
+                <td>
+                  <span
+                    className="emp-name-link"
+                    onClick={() =>
+                      setSelectedEmployeeId(emp.employeeId)
+                    }
+                  >
+                    {emp.firstName} {emp.lastName}
+                  </span>
+                </td>
+
                 <td>{emp.email}</td>
-                <td>{emp.phone}</td>
+                <td>{emp.phone || "-"}</td>
 
                 <td>
-                  <span className={`status-pill ${emp.status.toLowerCase()}`}>
+                  <span
+                    className={`status-pill ${emp.status.toLowerCase()}`}
+                  >
                     {emp.status}
                   </span>
                 </td>
 
                 <td>
-                  {emp.shift.shiftName}
+                  {emp.shift?.shiftName}
                   <div className="shift-time">
-                    {formatTime12Hour(emp.shift.startTime)} - {formatTime12Hour(emp.shift.endTime)}
+                    {formatTime12Hour(emp.shift?.startTime)}{" "}
+                    -{" "}
+                    {formatTime12Hour(emp.shift?.endTime)}
                   </div>
                 </td>
 
-                {/* ✅ ACTION BUTTON */}
                 {activeTab === TABS.PROBATION && (
                   <td>
                     <button
                       className="confirm-btn"
-                      disabled={actionLoading === emp.employeeId}
-                      onClick={() => confirmEmployee(emp.employeeId)}
+                      disabled={
+                        actionLoading === emp.employeeId
+                      }
+                      onClick={() =>
+                        confirmEmployee(emp.employeeId)
+                      }
                     >
-                      {actionLoading === emp.employeeId ? "Confirming..." : "Confirm"}
+                      {actionLoading === emp.employeeId
+                        ? "Confirming..."
+                        : "Confirm"}
                     </button>
                   </td>
                 )}
@@ -157,7 +195,12 @@ const DepartmentEmployees = () => {
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={activeTab === TABS.PROBATION ? 7 : 6} className="empty-row">
+                <td
+                  colSpan={
+                    activeTab === TABS.PROBATION ? 7 : 6
+                  }
+                  className="empty-row"
+                >
                   No employees found
                 </td>
               </tr>
@@ -165,6 +208,14 @@ const DepartmentEmployees = () => {
           </tbody>
         </table>
       </div>
+
+      {/* ✅ EMPLOYEE PROFILE MODAL */}
+      {selectedEmployeeId && (
+        <EmployeeProfileModal
+          employeeId={selectedEmployeeId}
+          onClose={() => setSelectedEmployeeId(null)}
+        />
+      )}
     </div>
   );
 };

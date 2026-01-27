@@ -11,19 +11,21 @@ const AdminAttendance = () => {
   }, []);
 
   const fetchAttendance = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/attendance/all");
+  try {
+    setLoading(true);
+    const res = await api.get("/attendance/all");
 
-      // ✅ IMPORTANT FIX: extract array from ResponseEntity
-      setData(res.data?.body || []);
-    } catch (err) {
-      console.error("Error fetching admin attendance", err);
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log("Admin attendance API data:", res.data); // optional debug
+
+    setData(res.data || []);
+  } catch (err) {
+    console.error("Error fetching admin attendance", err);
+    setData([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading) {
     return <div className="loader">Loading attendance...</div>;
