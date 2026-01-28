@@ -15,7 +15,6 @@ import {
   FaCalendarCheck,
   FaCalendarAlt ,
   FaFileAlt,
-  FaCog,
   FaSignOutAlt,
   FaClipboardList,
 } from "react-icons/fa";
@@ -91,11 +90,6 @@ const AdminDashboard = () => {
           <button className="nav-link">
             <FaFileAlt className="icon" />
             <span className="link-text">Reports</span>
-          </button>
-
-          <button className="nav-link">
-            <FaCog className="icon" />
-            <span className="link-text">Settings</span>
           </button>
         </nav>
 

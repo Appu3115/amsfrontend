@@ -1,12 +1,16 @@
 :root {
   --primary: #f97316;
+  --primary-dark: #ea580c;
   --primary-light: #fff7ed;
+
   --text-dark: #111827;
   --text-muted: #6b7280;
+
   --border: #e5e7eb;
   --bg: #f9fafb;
 }
 
+/* ================= CONTAINER ================= */
 .att-container {
   padding: 24px;
   background: var(--bg);
@@ -14,29 +18,76 @@
   font-family: "Inter", system-ui, sans-serif;
 }
 
-/* Header */
+/* ================= HEADER ================= */
+.att-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
 .att-header h2 {
   font-size: 22px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--primary-dark);
   margin-bottom: 4px;
 }
 
 .att-header p {
   font-size: 13px;
   color: var(--text-muted);
+}
+
+.att-count {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ================= STATUS TABS ================= */
+.att-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
-/* Card */
+.att-tab {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.att-tab:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.att-tab.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* ================= CARD ================= */
 .att-card {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* Table */
+/* ================= TABLE ================= */
 .att-table {
   width: 100%;
   border-collapse: collapse;
@@ -47,27 +98,37 @@
   text-align: left;
   padding: 12px;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-dark);
   font-weight: 600;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .att-table td {
   padding: 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text-dark);
+  vertical-align: middle;
 }
 
 .att-table tr:hover {
   background: #fffaf5;
 }
 
-/* Status badges */
+/* ================= STATUS BADGES ================= */
 .status {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Attendance statuses */
+.status.in_progress {
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .status.present {
@@ -80,12 +141,28 @@
   color: #991b1b;
 }
 
-.status.leave {
-  background: #e0e7ff;
-  color: #3730a3;
+.status.half_day {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-/* States */
+.status.permission {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.status.work_from_home {
+  background: #ecfeff;
+  color: #155e75;
+}
+
+/* ================= TABLE HELPERS ================= */
+.shift-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ================= STATES ================= */
 .att-loader {
   padding: 40px;
   text-align: center;
@@ -98,10 +175,12 @@
   background: #fee2e2;
   color: #991b1b;
   border-radius: 12px;
+  font-weight: 500;
 }
 
 .no-data {
   text-align: center;
   padding: 24px;
   color: var(--text-muted);
+  font-size: 14px;
 }

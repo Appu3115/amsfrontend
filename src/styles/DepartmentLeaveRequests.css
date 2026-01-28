@@ -98,7 +98,6 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
 .approve-btn:hover {
@@ -114,7 +113,6 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
 .reject-btn:hover {
@@ -148,38 +146,43 @@
   color: var(--text-muted);
 }
 
-/* ================= Modal Overlay ================= */
+/* ================= MODAL OVERLAY ================= */
 .proof-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-/* ================= Modal ================= */
+/* ================= MODAL ================= */
 .proof-modal {
-  width: 720px;
-  max-width: 95%;
   background: white;
+  width: 90%;
+  max-width: 900px;
+  height: 85vh;
   border-radius: 16px;
   padding: 20px;
   position: relative;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
 }
 
+/* ================= HEADER ================= */
 .proof-modal h3 {
   color: var(--primary);
   margin-bottom: 12px;
+  text-align: center;
 }
 
-/* ================= Close Button ================= */
+/* ================= CLOSE BUTTON ================= */
 .close-btn {
   position: absolute;
-  top: 12px;
-  right: 14px;
+  top: 14px;
+  right: 16px;
   border: none;
   background: none;
   font-size: 22px;
@@ -191,30 +194,49 @@
   color: var(--text-dark);
 }
 
-/* ================= Proof Content ================= */
+/* ================= CONTENT ================= */
 .proof-content {
-  height: 420px;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #f9fafb;
   border-radius: 12px;
+  overflow: hidden;
 }
 
+/* ===== IMAGE VIEWER ===== */
 .proof-image {
   max-width: 100%;
   max-height: 100%;
+  object-fit: contain;
   border-radius: 12px;
 }
 
-.proof-frame {
+/* ===== PDF VIEWER ===== */
+.proof-pdf {
   width: 100%;
   height: 100%;
-  border-radius: 12px;
   border: none;
 }
 
-/* ================= Footer ================= */
+/* ===== FALLBACK VIEWER ===== */
+.proof-download {
+  text-align: center;
+}
+
+.download-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 18px;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ================= FOOTER ================= */
 .proof-footer {
   display: flex;
   justify-content: space-between;
@@ -223,7 +245,7 @@
 }
 
 .proof-footer button {
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--primary);
   background: var(--primary-light);
@@ -235,4 +257,17 @@
 .proof-footer button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .proof-modal {
+    width: 95%;
+    height: 90vh;
+    padding: 16px;
+  }
+
+  .proof-footer button {
+    padding: 6px 12px;
+  }
 }

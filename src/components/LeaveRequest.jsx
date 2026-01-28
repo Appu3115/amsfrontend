@@ -7,9 +7,8 @@ const CLOUD_NAME = "dangvotkt";
 const UPLOAD_PRESET = "amsproject";
 
 const LeaveRequest = ({ onClose }) => {
-
   const user = getUser();
-  const employeeId = user.employeeId?.toUpperCase();
+  const employeeId = user?.employeeId?.toUpperCase();
 
   const [form, setForm] = useState({
     leaveType: "",
@@ -23,10 +22,24 @@ const LeaveRequest = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  /* ================= HELPERS ================= */
+
+  const extractErrorMessage = (err) => {
+    if (err.response?.data) {
+      if (typeof err.response.data === "string") {
+        return err.response.data;
+      }
+      if (err.response.data.message) {
+        return err.response.data.message;
+      }
+    }
+    return err.message || "Failed to apply leave";
+  };
+
   /* ================= HANDLERS ================= */
 
   const handleChange = (e) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -71,16 +84,16 @@ const LeaveRequest = ({ onClose }) => {
     }
 
     try {
-      // Upload proofs
+      // Upload proofs (if any)
       let proofUrls = [];
 
       if (files.length > 0) {
         proofUrls = await Promise.all(
-          files.map(file => uploadToCloudinary(file))
+          files.map((file) => uploadToCloudinary(file))
         );
       }
 
-      // Payload strictly matches DTO
+      // Payload should match backend DTO
       const payload = {
         leaveType: form.leaveType,
         reason: form.reason,
@@ -91,20 +104,16 @@ const LeaveRequest = ({ onClose }) => {
       };
 
       await api.post(
-        `/leave/applyleave?employeeId=${employeeId}`,
-        payload
+        `/leave/applyleave`,
+        payload,
+        { params: { employeeId } }
       );
 
       alert("Leave applied successfully");
       onClose();
-
     } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data ||
-        err.message ||
-        "Failed to apply leave"
-      );
+      console.error("Apply leave failed:", err);
+      setError(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -120,7 +129,6 @@ const LeaveRequest = ({ onClose }) => {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit}>
-
           <label>Leave Type</label>
           <select
             name="leaveType"
@@ -202,7 +210,6 @@ const LeaveRequest = ({ onClose }) => {
               {loading ? "Submitting..." : "Apply Leave"}
             </button>
           </div>
-
         </form>
       </div>
     </div>

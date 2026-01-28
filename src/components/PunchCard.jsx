@@ -3,7 +3,8 @@ import api from "../api/axios";
 import "../styles/PunchCard.css";
 import { getUser } from "../utils/auth";
 import EmployeeWorkTracker from "./EmployeeWorkTracker";
-/* ---------- CONSTANTS (MATCH BACKEND ENUMS) ---------- */
+
+/* ---------- CONSTANTS ---------- */
 const PERMISSION_OPTIONS = [
   { label: "30 Minutes", minutes: 30, duration: "HOURLY" },
   { label: "1 Hour", minutes: 60, duration: "HOURLY" },
@@ -35,12 +36,8 @@ const PunchCard = () => {
   /* ================= ERROR HANDLER ================= */
   const getErrorMessage = (err, fallback) => {
     if (err.response?.data) {
-      if (typeof err.response.data === "string") {
-        return err.response.data;
-      }
-      if (err.response.data.message) {
-        return err.response.data.message;
-      }
+      if (typeof err.response.data === "string") return err.response.data;
+      if (err.response.data.message) return err.response.data.message;
     }
     return fallback;
   };
@@ -63,28 +60,40 @@ const PunchCard = () => {
     loadShift();
   }, [employeeId]);
 
-  /* ================= RESTORE SESSION ================= */
-  useEffect(() => {
-    const loggedIn = sessionStorage.getItem("emp_attendance_logged_in");
-    const storedLoginTime = sessionStorage.getItem(
-      "emp_attendance_login_time"
-    );
+  /* ================= RESTORE SESSION (KEY FIX) ================= */
+/* ================= RESTORE SESSION ================= */
+useEffect(() => {
+  if (!employeeId) return;
 
-    if (loggedIn === "true" && storedLoginTime) {
-      const parsed = new Date(storedLoginTime);
-      setIsLoggedIn(true);
-      setLoginTime(parsed);
-      setSeconds(
-        Math.floor((Date.now() - parsed.getTime()) / 1000)
+  const restoreSession = async () => {
+    try {
+      const res = await api.get(
+        `/attendance/current/${employeeId}`
       );
+
+      if (res.data.loggedIn && res.data.sessionStartTime) {
+        const start = new Date(res.data.sessionStartTime);
+
+        setIsLoggedIn(true);
+        setLoginTime(start);
+
+        // 👇 backend already gives runningSeconds
+        setSeconds(res.data.runningSeconds || 0);
+      }
+    } catch (err) {
+      console.error("Failed to restore attendance session", err);
     }
-  }, []);
+  };
+
+  restoreSession();
+}, [employeeId]);
+
 
   /* ================= TIMER ================= */
   useEffect(() => {
     if (!isLoggedIn || !loginTime) return;
 
-    const start = new Date(loginTime).getTime();
+    const start = loginTime.getTime();
     const interval = setInterval(() => {
       setSeconds(Math.floor((Date.now() - start) / 1000));
     }, 1000);
@@ -111,19 +120,16 @@ const PunchCard = () => {
         params: { employeeId, workFromHome },
       });
 
-      const now = new Date();
-      setIsLoggedIn(true);
-      setLoginTime(now);
-      setSeconds(0);
-
-      sessionStorage.setItem("emp_attendance_logged_in", "true");
-      sessionStorage.setItem(
-        "emp_attendance_login_time",
-        now.toISOString()
+      const punchInTime = new Date(
+        res.data.punchInTime || Date.now()
       );
 
+      setIsLoggedIn(true);
+      setLoginTime(punchInTime);
+      setSeconds(0);
       setWorkFromHome(false);
-      setMessage(res.data);
+
+      setMessage(res.data.message || "Punch In successful");
     } catch (err) {
       setMessage(getErrorMessage(err, "Punch In failed"));
     } finally {
@@ -145,10 +151,7 @@ const PunchCard = () => {
       setLoginTime(null);
       setSeconds(0);
 
-      sessionStorage.removeItem("emp_attendance_logged_in");
-      sessionStorage.removeItem("emp_attendance_login_time");
-
-      setMessage(res.data);
+      setMessage(res.data.message || "Punch Out successful");
     } catch (err) {
       setMessage(getErrorMessage(err, "Punch Out failed"));
     } finally {
@@ -173,7 +176,7 @@ const PunchCard = () => {
       minutesToSend = workingMinutes;
     }
 
-    if (!minutesToSend || minutesToSend <= 0) {
+    if (!minutesToSend) {
       setMessage("Unable to calculate permission minutes");
       return;
     }
@@ -187,12 +190,12 @@ const PunchCard = () => {
           employeeId,
           type,
           duration: permission.duration,
-          minutes: minutesToSend, // ✅ ALWAYS SENT
+          minutes: minutesToSend,
         },
       });
 
       setPermission(null);
-      setMessage(res.data);
+      setMessage(res.data.message || "Permission requested");
     } catch (err) {
       setMessage(getErrorMessage(err, "Permission request failed"));
     } finally {
@@ -202,119 +205,118 @@ const PunchCard = () => {
 
   /* ================= UI ================= */
   return (
-  <div className="punch-layout">
+    <div className="punch-layout">
+      {/* LEFT */}
+      <div className="punch-left">
+        <div className="punch-card">
+          <h3>Today Attendance</h3>
 
-    {/* LEFT PANEL */}
-    <div className="punch-left">
-      <div className="punch-card">
-        <h3>Today Attendance</h3>
+          {isLoggedIn ? (
+            <>
+              <div className="timer big">{formatTime(seconds)}</div>
+              <p className="status active">
+                WORKING {workFromHome && "(WFH)"}
+              </p>
 
-        {isLoggedIn ? (
-          <>
-            <div className="timer big">{formatTime(seconds)}</div>
-            <p className="status active">
-              WORKING {workFromHome && "(WFH)"}
-            </p>
-
-            <div className="permission">
-              <select
-                value={permission?.label || ""}
-                onChange={(e) =>
-                  setPermission(
-                    PERMISSION_OPTIONS.find(
-                      (p) => p.label === e.target.value
+              <div className="permission">
+                <select
+                  value={permission?.label || ""}
+                  onChange={(e) =>
+                    setPermission(
+                      PERMISSION_OPTIONS.find(
+                        (p) => p.label === e.target.value
+                      )
                     )
-                  )
-                }
-              >
-                <option value="">Early Leave Permission</option>
-                {PERMISSION_OPTIONS.map((p) => (
-                  <option key={p.label} value={p.label}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+                  }
+                >
+                  <option value="">Early Leave Permission</option>
+                  {PERMISSION_OPTIONS.map((p) => (
+                    <option key={p.label} value={p.label}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  className="secondary"
+                  onClick={() => requestPermission("EARLY_OUT")}
+                  disabled={loading}
+                >
+                  Request
+                </button>
+              </div>
 
               <button
-                className="secondary"
-                onClick={() => requestPermission("EARLY_OUT")}
+                className="danger full"
+                onClick={punchOut}
                 disabled={loading}
               >
-                Request
+                Punch Out
               </button>
-            </div>
-
-            <button
-              className="danger full"
-              onClick={punchOut}
-              disabled={loading}
-            >
-              Punch Out
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="permission">
-              <select
-                value={permission?.label || ""}
-                onChange={(e) =>
-                  setPermission(
-                    PERMISSION_OPTIONS.find(
-                      (p) => p.label === e.target.value
+            </>
+          ) : (
+            <>
+              <div className="permission">
+                <select
+                  value={permission?.label || ""}
+                  onChange={(e) =>
+                    setPermission(
+                      PERMISSION_OPTIONS.find(
+                        (p) => p.label === e.target.value
+                      )
                     )
-                  )
-                }
-              >
-                <option value="">Late In Permission</option>
-                {PERMISSION_OPTIONS.map((p) => (
-                  <option key={p.label} value={p.label}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+                  }
+                >
+                  <option value="">Late In Permission</option>
+                  {PERMISSION_OPTIONS.map((p) => (
+                    <option key={p.label} value={p.label}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  className="secondary"
+                  onClick={() => requestPermission("LATE_IN")}
+                  disabled={loading}
+                >
+                  Request
+                </button>
+              </div>
+
+              <label className="wfh">
+                <input
+                  type="checkbox"
+                  checked={workFromHome}
+                  onChange={(e) =>
+                    setWorkFromHome(e.target.checked)
+                  }
+                />
+                Work From Home
+              </label>
 
               <button
-                className="secondary"
-                onClick={() => requestPermission("LATE_IN")}
+                className="primary full"
+                onClick={punchIn}
                 disabled={loading}
               >
-                Request
+                Punch In
               </button>
-            </div>
+            </>
+          )}
 
-            <label className="wfh">
-              <input
-                type="checkbox"
-                checked={workFromHome}
-                onChange={(e) => setWorkFromHome(e.target.checked)}
-              />
-              Work From Home
-            </label>
+          {message && <p className="message">{message}</p>}
+        </div>
+      </div>
 
-            <button
-              className="primary full"
-              onClick={punchIn}
-              disabled={loading}
-            >
-              Punch In
-            </button>
-          </>
+      {/* RIGHT */}
+      <div className="punch-right">
+        {isLoggedIn && (
+          <EmployeeWorkTracker employeeId={employeeId} />
         )}
-
-        {message && <p className="message">{message}</p>}
       </div>
     </div>
-
-    {/* RIGHT PANEL */}
-    <div className="punch-right">
-      {isLoggedIn && (
-        <EmployeeWorkTracker employeeId={employeeId} />
-      )}
-    </div>
-
-  </div>
-);
-
+  );
 };
 
 export default PunchCard;

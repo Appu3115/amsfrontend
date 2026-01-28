@@ -11,12 +11,12 @@ const DepartmentLeaveRequests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 🔹 Proof modal state
+  /* ===== PROOF MODAL STATE ===== */
   const [showModal, setShowModal] = useState(false);
   const [proofs, setProofs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // 🔹 Action loading (per leave)
+  /* ===== ACTION LOADING ===== */
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
@@ -73,10 +73,56 @@ const DepartmentLeaveRequests = () => {
   const closeModal = () => {
     setShowModal(false);
     setProofs([]);
+    setActiveIndex(0);
   };
 
-  if (loading) return <div className="leave-loader">Loading leave requests…</div>;
-  if (error) return <div className="leave-error">{error}</div>;
+  const renderProof = (url) => {
+    if (!url) return null;
+
+    const ext = url.split(".").pop().toLowerCase();
+
+    // PDF
+    if (ext === "pdf") {
+      return (
+        <iframe
+          src={url}
+          title="Leave Proof PDF"
+          className="proof-pdf"
+        />
+      );
+    }
+
+    // Image
+    if (["jpg", "jpeg", "png", "webp"].includes(ext)) {
+      return (
+        <img
+          src={url}
+          alt="Leave Proof"
+          className="proof-image"
+        />
+      );
+    }
+
+    // Other documents
+    return (
+      <div className="proof-download">
+        <p>Preview not available for this file type</p>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="download-btn"
+        >
+          Download / Open File
+        </a>
+      </div>
+    );
+  };
+
+  if (loading)
+    return <div className="leave-loader">Loading leave requests…</div>;
+  if (error)
+    return <div className="leave-error">{error}</div>;
 
   const currentProof = proofs[activeIndex];
 
@@ -128,7 +174,9 @@ const DepartmentLeaveRequests = () => {
                       {leave.proofs?.length > 0 ? (
                         <button
                           className="proof-btn"
-                          onClick={() => openProofModal(leave.proofs)}
+                          onClick={() =>
+                            openProofModal(leave.proofs)
+                          }
                         >
                           View ({leave.proofs.length})
                         </button>
@@ -137,14 +185,17 @@ const DepartmentLeaveRequests = () => {
                       )}
                     </td>
 
-                    {/* ===== ACTION (ONLY PENDING) ===== */}
                     <td>
                       {leave.status === "PENDING" ? (
                         <div className="action-buttons">
                           <button
                             className="approve-btn"
-                            disabled={actionLoading === leave.leaveId}
-                            onClick={() => approveLeave(leave.leaveId)}
+                            disabled={
+                              actionLoading === leave.leaveId
+                            }
+                            onClick={() =>
+                              approveLeave(leave.leaveId)
+                            }
                           >
                             {actionLoading === leave.leaveId
                               ? "Approving..."
@@ -153,8 +204,12 @@ const DepartmentLeaveRequests = () => {
 
                           <button
                             className="reject-btn"
-                            disabled={actionLoading === leave.leaveId}
-                            onClick={() => rejectLeave(leave.leaveId)}
+                            disabled={
+                              actionLoading === leave.leaveId
+                            }
+                            onClick={() =>
+                              rejectLeave(leave.leaveId)
+                            }
                           >
                             {actionLoading === leave.leaveId
                               ? "Rejecting..."
@@ -184,25 +239,15 @@ const DepartmentLeaveRequests = () => {
             <h3>Leave Proof</h3>
 
             <div className="proof-content">
-              {currentProof?.fileUrl.endsWith(".pdf") ? (
-                <iframe
-                  src={currentProof.fileUrl}
-                  title="Proof"
-                  className="proof-frame"
-                />
-              ) : (
-                <img
-                  src={currentProof.fileUrl}
-                  alt="Leave Proof"
-                  className="proof-image"
-                />
-              )}
+              {renderProof(currentProof?.fileUrl)}
             </div>
 
             <div className="proof-footer">
               <button
                 disabled={activeIndex === 0}
-                onClick={() => setActiveIndex((i) => i - 1)}
+                onClick={() =>
+                  setActiveIndex((i) => i - 1)
+                }
               >
                 ◀ Prev
               </button>
@@ -212,8 +257,12 @@ const DepartmentLeaveRequests = () => {
               </span>
 
               <button
-                disabled={activeIndex === proofs.length - 1}
-                onClick={() => setActiveIndex((i) => i + 1)}
+                disabled={
+                  activeIndex === proofs.length - 1
+                }
+                onClick={() =>
+                  setActiveIndex((i) => i + 1)
+                }
               >
                 Next ▶
               </button>
@@ -228,7 +277,9 @@ const DepartmentLeaveRequests = () => {
 const getDays = (start, end) => {
   const s = new Date(start);
   const e = new Date(end);
-  return Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
+  return Math.floor(
+    (e - s) / (1000 * 60 * 60 * 24)
+  ) + 1;
 };
 
 export default DepartmentLeaveRequests;
