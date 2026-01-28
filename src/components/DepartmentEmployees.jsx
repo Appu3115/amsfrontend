@@ -65,6 +65,26 @@ const DepartmentEmployees = () => {
     }
   };
 
+  /* ================= DELETE EMPLOYEE ================= */
+const deleteEmployee = async (employeeId) => {
+  const ok = window.confirm(
+    `Are you sure you want to delete employee ${employeeId}?`
+  );
+  if (!ok) return;
+
+  try {
+    setActionLoading(employeeId);
+
+    await api.delete(`/user/delete/${employeeId}`);
+
+    await loadEmployees(); // refresh table
+  } catch (err) {
+    alert(err.response?.data || "Failed to delete employee");
+  } finally {
+    setActionLoading(null);
+  }
+};
+
   /* ================= CONFIRM ACTION ================= */
   const confirmEmployee = async (employeeId) => {
     try {
@@ -130,6 +150,8 @@ const DepartmentEmployees = () => {
               <th>Phone</th>
               <th>Status</th>
               <th>Shift</th>
+              <th>Action</th>
+
               {activeTab === TABS.PROBATION && (
                 <th>Action</th>
               )}
@@ -173,23 +195,30 @@ const DepartmentEmployees = () => {
                   </div>
                 </td>
 
-                {activeTab === TABS.PROBATION && (
-                  <td>
-                    <button
-                      className="confirm-btn"
-                      disabled={
-                        actionLoading === emp.employeeId
-                      }
-                      onClick={() =>
-                        confirmEmployee(emp.employeeId)
-                      }
-                    >
-                      {actionLoading === emp.employeeId
-                        ? "Confirming..."
-                        : "Confirm"}
-                    </button>
-                  </td>
-                )}
+                <td className="action-cell">
+  {activeTab === TABS.PROBATION && (
+    <button
+      className="confirm-btn"
+      disabled={actionLoading === emp.employeeId}
+      onClick={() => confirmEmployee(emp.employeeId)}
+    >
+      {actionLoading === emp.employeeId
+        ? "Confirming..."
+        : "Confirm"}
+    </button>
+  )}
+
+  <button
+    className="delete-btn"
+    disabled={actionLoading === emp.employeeId}
+    onClick={() => deleteEmployee(emp.employeeId)}
+  >
+    {actionLoading === emp.employeeId
+      ? "Deleting..."
+      : "Delete"}
+  </button>
+</td>
+
               </tr>
             ))}
 

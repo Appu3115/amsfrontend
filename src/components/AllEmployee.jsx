@@ -9,6 +9,7 @@ const AllEmployee = () => {
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+const [actionLoading, setActionLoading] = useState(null);
 
   /* Tabs */
   const [activeTab, setActiveTab] = useState("EMPLOYEE");
@@ -75,6 +76,26 @@ const AllEmployee = () => {
     hour = hour % 12 || 12;
     return `${hour}:${minute} ${ampm}`;
   };
+
+  /* ================= DELETE EMPLOYEE ================= */
+const deleteEmployee = async (employeeId) => {
+  const ok = window.confirm(
+    `Are you sure you want to delete employee ${employeeId}?`
+  );
+  if (!ok) return;
+
+  try {
+    setActionLoading(employeeId);
+
+    await api.delete(`/user/delete/${employeeId}`);
+
+    await fetchEmployees(); // refresh list
+  } catch (err) {
+    alert(err.response?.data || "Failed to delete employee");
+  } finally {
+    setActionLoading(null);
+  }
+};
 
   /* ================= SHIFT MODAL ================= */
 
@@ -177,19 +198,33 @@ const AllEmployee = () => {
                   : "-"}
               </td>
 
-              <td>
-                {/* UPDATE SHIFT */}
-                {emp.role === "EMPLOYEE" &&
-                  (loggedInRole === "ADMIN" ||
-                    loggedInRole === "MANAGER") && (
-                    <button
-                      className="shift-btn"
-                      onClick={() => openShiftModal(emp)}
-                    >
-                      Update Shift
-                    </button>
-                  )}
-              </td>
+             <td className="action-cell">
+  {/* UPDATE SHIFT */}
+  {emp.role === "EMPLOYEE" &&
+    (loggedInRole === "ADMIN" ||
+      loggedInRole === "MANAGER") && (
+      <button
+        className="shift-btn"
+        onClick={() => openShiftModal(emp)}
+      >
+        Update Shift
+      </button>
+    )}
+
+  {/* DELETE (ADMIN ONLY) */}
+  {loggedInRole === "ADMIN" && (
+    <button
+      className="delete-btn"
+      disabled={actionLoading === emp.employeeId}
+      onClick={() => deleteEmployee(emp.employeeId)}
+    >
+      {actionLoading === emp.employeeId
+        ? "Deleting..."
+        : "Delete"}
+    </button>
+  )}
+</td>
+
             </tr>
           ))}
         </tbody>

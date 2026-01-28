@@ -1,3 +1,4 @@
+
 .dept-table-wrapper {
   background: #ffffff;
   border-radius: 14px;
@@ -130,6 +131,29 @@
 }
 
 .confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.action-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
+.delete-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
