@@ -23,7 +23,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .att-header h2 {
@@ -45,6 +45,43 @@
   border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
+}
+
+/* ================= FILTER BAR ================= */
+.att-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.att-filters select,
+.att-filters input[type="date"],
+.att-filters input[type="text"] {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  background: white;
+  color: var(--text-dark);
+  outline: none;
+  min-width: 160px;
+  transition: all 0.2s ease;
+}
+
+.att-filters input[type="text"] {
+  min-width: 220px;
+}
+
+.att-filters select:hover,
+.att-filters input:hover {
+  border-color: var(--primary);
+}
+
+.att-filters select:focus,
+.att-filters input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
 }
 
 /* ================= STATUS TABS ================= */
@@ -85,6 +122,7 @@
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
 }
 
 /* ================= TABLE ================= */
@@ -92,6 +130,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 900px;
 }
 
 .att-table th {
@@ -183,4 +222,17 @@
   padding: 24px;
   color: var(--text-muted);
   font-size: 14px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .att-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .att-filters input[type="text"] {
+    min-width: 100%;
+  }
 }

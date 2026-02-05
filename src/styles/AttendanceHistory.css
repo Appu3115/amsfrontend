@@ -24,7 +24,10 @@
 
 /* ===== Header ===== */
 .attendance-header {
-  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .attendance-header h2 {
@@ -37,6 +40,52 @@
   color: var(--text-muted);
   margin-top: 4px;
   font-size: 14px;
+}
+
+/* ===== Apply Leave Button ===== */
+.apply-leave-btn {
+  background: var(--orange-primary);
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.apply-leave-btn:hover {
+  background: var(--orange-dark);
+}
+
+/* ===== Filters ===== */
+.attendance-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.attendance-filters select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  font-size: 13px;
+  background: white;
+  color: var(--text-dark);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+}
+
+.attendance-filters select:hover {
+  border-color: var(--orange-primary);
+}
+
+.attendance-filters select:focus {
+  border-color: var(--orange-primary);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
 }
 
 /* ===== States ===== */
@@ -68,7 +117,7 @@
 .attendance-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1100px; /* important for many columns */
+  min-width: 1100px;
 }
 
 /* Sticky Header */
@@ -146,8 +195,18 @@
     padding: 18px;
   }
 
+  .attendance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
   .attendance-header h2 {
     font-size: 22px;
+  }
+
+  .attendance-filters select {
+    width: 100%;
   }
 
   .attendance-table th,
@@ -155,23 +214,4 @@
     padding: 10px;
     font-size: 13px;
   }
-}
-.apply-leave-btn {
-  background: #f97316;
-  color: #ffffff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.apply-leave-btn:hover {
-  background: #ea580c;
-}
-
-.attendance-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }

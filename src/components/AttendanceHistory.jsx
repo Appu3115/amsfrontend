@@ -10,14 +10,24 @@ const AttendanceHistory = () => {
   const employeeId = user?.employeeId?.toUpperCase();
 
   const [attendance, setAttendance] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [showLeave, setShowLeave] = useState(false);
 
+  /* ===== FILTER STATE ===== */
+  const [dateFilter, setDateFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   useEffect(() => {
     if (employeeId) fetchAttendance();
   }, [employeeId]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [attendance, dateFilter, statusFilter]);
 
   /* ---------- Helpers ---------- */
 
@@ -43,16 +53,58 @@ const AttendanceHistory = () => {
         `/attendance/employee/${employeeId}`
       );
 
-      // ✅ IMPORTANT FIX: extract list from ResponseEntity
       setAttendance(res.data || []);
-
+      setFiltered(res.data || []);
     } catch (err) {
       console.error(err);
       setError("Failed to load attendance");
       setAttendance([]);
+      setFiltered([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  /* ---------- FILTER LOGIC ---------- */
+  const applyFilters = () => {
+    let result = [...attendance];
+    const today = new Date();
+
+    /* DATE FILTER */
+    if (dateFilter === "TODAY") {
+      result = result.filter(
+        (a) =>
+          new Date(a.attendanceDate).toDateString() ===
+          today.toDateString()
+      );
+    }
+
+    if (dateFilter === "MONTH") {
+      result = result.filter((a) => {
+        const d = new Date(a.attendanceDate);
+        return (
+          d.getMonth() === today.getMonth() &&
+          d.getFullYear() === today.getFullYear()
+        );
+      });
+    }
+
+    if (dateFilter === "YEAR") {
+      result = result.filter(
+        (a) =>
+          new Date(a.attendanceDate).getFullYear() ===
+          today.getFullYear()
+      );
+    }
+
+    /* STATUS FILTER */
+    if (statusFilter !== "ALL") {
+      result = result.filter(
+        (a) => a.dailyStatus === statusFilter
+      );
+    }
+
+    setFiltered(result);
   };
 
   if (loading)
@@ -85,7 +137,37 @@ const AttendanceHistory = () => {
           </button>
         </div>
 
-        {attendance.length === 0 ? (
+        {/* ===== FILTER BAR ===== */}
+        <div className="attendance-filters">
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          >
+            <option value="ALL">All Time</option>
+            <option value="TODAY">Today</option>
+            <option value="MONTH">This Month</option>
+            <option value="YEAR">This Year</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value)
+            }
+          >
+            <option value="ALL">All Status</option>
+            <option value="PRESENT">Present</option>
+            <option value="ABSENT">Absent</option>
+            <option value="LEAVE">Leave</option>
+            <option value="HALF_DAY">Half Day</option>
+            <option value="PERMISSION">Permission</option>
+            <option value="WORK_FROM_HOME">
+              Work From Home
+            </option>
+          </select>
+        </div>
+
+        {filtered.length === 0 ? (
           <p className="empty">
             No attendance records found
           </p>
@@ -107,7 +189,7 @@ const AttendanceHistory = () => {
               </thead>
 
               <tbody>
-                {attendance.map((a, index) => (
+                {filtered.map((a, index) => (
                   <tr
                     key={index}
                     className={a.dailyStatus?.toLowerCase()}
@@ -123,13 +205,11 @@ const AttendanceHistory = () => {
                     <td>
                       {formatTime12H(a.logout)}
                     </td>
-
                     <td>
                       <StatusBadge
                         status={a.dailyStatus}
                       />
                     </td>
-
                     <td>
                       {formatDuration(
                         a.totalWorkMinutes
@@ -168,7 +248,7 @@ const AttendanceHistory = () => {
         <LeaveRequest
           onClose={() => {
             setShowLeave(false);
-            fetchAttendance(); // refresh after leave
+            fetchAttendance();
           }}
         />
       )}

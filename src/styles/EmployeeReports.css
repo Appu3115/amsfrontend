@@ -1,0 +1,133 @@
+:root {
+  --primary: #f97316;
+  --primary-dark: #ea580c;
+  --bg: #f9fafb;
+  --card-bg: #ffffff;
+
+  --text-dark: #1f2937;
+  --text-muted: #6b7280;
+
+  --border: #e5e7eb;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+/* ================= PAGE ================= */
+.reports-dashboard {
+  padding: 28px;
+  background: var(--bg);
+  min-height: 100vh;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ================= TITLE ================= */
+.reports-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 32px;
+}
+
+/* ================= SECTIONS ================= */
+.reports-dashboard section {
+  margin-bottom: 44px;
+}
+
+.reports-dashboard section > h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 18px;
+}
+
+/* ================= GRID ================= */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 22px;
+}
+
+/* ================= CARD ================= */
+.report-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 18px 16px 14px;
+  box-shadow: var(--shadow);
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Accent top line */
+.report-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 3px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(
+    to right,
+    var(--primary),
+    var(--primary-dark)
+  );
+}
+
+.report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.09);
+}
+
+/* ================= CARD TITLE ================= */
+.report-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ================= CHART ALIGN ================= */
+.recharts-responsive-container {
+  margin: 0 auto;
+}
+
+/* ================= LOADING ================= */
+.report-loading {
+  padding: 100px 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ================= TOOLTIP POLISH ================= */
+.recharts-tooltip-wrapper {
+  font-size: 13px;
+}
+
+.recharts-default-tooltip {
+  border-radius: 12px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow);
+  padding: 8px 12px !important;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .reports-dashboard {
+    padding: 18px;
+  }
+
+  .reports-title {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .reports-dashboard section > h3 {
+    font-size: 18px;
+  }
+
+  .report-grid {
+    gap: 18px;
+  }
+}

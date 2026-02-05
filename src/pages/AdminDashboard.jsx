@@ -7,23 +7,44 @@ import AdminAttendance from "../components/AdminAttendance";
 import CreateManager from "../components/CreateManager";
 import DailyCount from "../components/DailyCount";
 import HolidayAdmin from "../components/HolidayAdmin";
+
 import {
   FaTachometerAlt,
   FaUsers,
   FaBuilding,
   FaClock,
   FaCalendarCheck,
-  FaCalendarAlt ,
+  FaCalendarAlt,
   FaFileAlt,
   FaSignOutAlt,
   FaClipboardList,
 } from "react-icons/fa";
 
+import { logout } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
-  const [activePage, setActivePage] = useState("dashboard");
+  const navigate = useNavigate();
+
+  // ✅ Persist active page
+  const [activePage, setActivePage] = useState(
+    sessionStorage.getItem("admin_active_page") || "dashboard"
+  );
+
   const [showCreateManager, setShowCreateManager] = useState(false);
+
+  /* ================= PAGE HANDLER ================= */
+  const handlePageChange = (page) => {
+    setActivePage(page);
+    sessionStorage.setItem("admin_active_page", page);
+  };
+
+  /* ================= LOGOUT ================= */
+  const handleLogout = () => {
+    sessionStorage.removeItem("admin_active_page");
+    logout(navigate);
+  };
 
   return (
     <div className="admin-container">
@@ -34,7 +55,7 @@ const AdminDashboard = () => {
         <nav className="sidebar-nav">
           <button
             className={`nav-link ${activePage === "dashboard" ? "active" : ""}`}
-            onClick={() => setActivePage("dashboard")}
+            onClick={() => handlePageChange("dashboard")}
           >
             <FaTachometerAlt className="icon" />
             <span className="link-text">Dashboard</span>
@@ -42,7 +63,7 @@ const AdminDashboard = () => {
 
           <button
             className={`nav-link ${activePage === "employees" ? "active" : ""}`}
-            onClick={() => setActivePage("employees")}
+            onClick={() => handlePageChange("employees")}
           >
             <FaUsers className="icon" />
             <span className="link-text">Employees</span>
@@ -50,7 +71,7 @@ const AdminDashboard = () => {
 
           <button
             className={`nav-link ${activePage === "departments" ? "active" : ""}`}
-            onClick={() => setActivePage("departments")}
+            onClick={() => handlePageChange("departments")}
           >
             <FaBuilding className="icon" />
             <span className="link-text">Departments</span>
@@ -58,7 +79,7 @@ const AdminDashboard = () => {
 
           <button
             className={`nav-link ${activePage === "shifts" ? "active" : ""}`}
-            onClick={() => setActivePage("shifts")}
+            onClick={() => handlePageChange("shifts")}
           >
             <FaClock className="icon" />
             <span className="link-text">Shifts</span>
@@ -66,22 +87,23 @@ const AdminDashboard = () => {
 
           <button
             className={`nav-link ${activePage === "attendance" ? "active" : ""}`}
-            onClick={() => setActivePage("attendance")}
+            onClick={() => handlePageChange("attendance")}
           >
             <FaCalendarCheck className="icon" />
             <span className="link-text">Attendance</span>
           </button>
+
           <button
-  className={`nav-link ${activePage === "holidays" ? "active" : ""}`}
-  onClick={() => setActivePage("holidays")}
->
-  <FaCalendarAlt className="icon" />
-  <span className="link-text">Holidays</span>
-</button>
+            className={`nav-link ${activePage === "holidays" ? "active" : ""}`}
+            onClick={() => handlePageChange("holidays")}
+          >
+            <FaCalendarAlt className="icon" />
+            <span className="link-text">Holidays</span>
+          </button>
 
           <button
             className={`nav-link ${activePage === "leaves" ? "active" : ""}`}
-            onClick={() => setActivePage("leaves")}
+            onClick={() => handlePageChange("leaves")}
           >
             <FaClipboardList className="icon" />
             <span className="link-text">Leave Requests</span>
@@ -94,7 +116,7 @@ const AdminDashboard = () => {
         </nav>
 
         <div className="sidebar-logout">
-          <button className="logout-btn">
+          <button className="logout-btn" onClick={handleLogout}>
             <FaSignOutAlt className="icon" />
             <span className="link-text">Logout</span>
           </button>
@@ -109,7 +131,7 @@ const AdminDashboard = () => {
         </header>
 
         <section className="page-content">
-          {/* ✅ DASHBOARD = DAILY COUNT */}
+          {/* ===== Dashboard ===== */}
           {activePage === "dashboard" && <DailyCount />}
 
           {/* ===== Departments ===== */}
@@ -117,8 +139,9 @@ const AdminDashboard = () => {
 
           {/* ===== Shifts ===== */}
           {activePage === "shifts" && <Shifts />}
-{/* ===== Holidays ===== */}
-{activePage === "holidays" && <HolidayAdmin />}
+
+          {/* ===== Holidays ===== */}
+          {activePage === "holidays" && <HolidayAdmin />}
 
           {/* ===== Employees ===== */}
           {activePage === "employees" && (

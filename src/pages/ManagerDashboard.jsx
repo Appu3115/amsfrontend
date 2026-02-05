@@ -13,17 +13,26 @@ import CreateEmployeeModal from "../components/CreateEmployeeModel";
 import { getUser, getRole, logout } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import "../styles/ManagerDashboard.css";
+import ManagerReports from "../components/ManagerReports";
+
 import ProfileForm from "../components/ProfileForm";
 import DepartmentEmployees from "../components/DepartmentEmployees";
 import DepartmentAttendance from "../components/DepartmentAttendance";
 import DepartmentLeaveRequests from "../components/DepartmentLeaveRequests";
 import HolidayList from "../components/HolidayList";
 import PunchCard from "../components/PunchCard";
+import EmployeeLeaveBalance from "../components/EmployeeLeaveBalance";
+
 const ManagerDashboard = () => {
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+
+  // ✅ Persist active tab using localStorage
+  const [activeTab, setActiveTab] = useState(
+    sessionStorage.getItem("manager_active_tab") || "dashboard"
+  );
+
   const [openModal, setOpenModal] = useState(false);
 
   /* ================= AUTH GUARD ================= */
@@ -39,6 +48,18 @@ const ManagerDashboard = () => {
   const user = getUser();
   if (!user) return null;
 
+  /* ================= TAB HANDLER ================= */
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    sessionStorage.setItem("manager_active_tab", tab);
+  };
+
+  /* ================= LOGOUT ================= */
+  const handleLogout = () => {
+    sessionStorage.removeItem("manager_active_tab");
+    logout(navigate);
+  };
+
   return (
     <div className="dashboard-container">
       {/* ================= SIDEBAR ================= */}
@@ -50,46 +71,63 @@ const ManagerDashboard = () => {
             icon={<FaChartBar />}
             label="Dashboard"
             active={activeTab === "dashboard"}
-            onClick={() => setActiveTab("dashboard")}
+            onClick={() => handleTabChange("dashboard")}
           />
 
           <SidebarItem
             icon={<FaUsers />}
             label="Employees"
             active={activeTab === "employees"}
-            onClick={() => setActiveTab("employees")}
+            onClick={() => handleTabChange("employees")}
           />
 
           <SidebarItem
             icon={<FaCalendarCheck />}
             label="Attendance"
             active={activeTab === "attendance"}
-            onClick={() => setActiveTab("attendance")}
+            onClick={() => handleTabChange("attendance")}
           />
-<SidebarItem
-  icon={<FaClock />}
-  label="My Attendance"
-  active={activeTab === "myAttendance"}
-  onClick={() => setActiveTab("myAttendance")}
-/>
+
+          {/* <SidebarItem
+            icon={<FaClock />}
+            label="My Attendance"
+            active={activeTab === "myAttendance"}
+            onClick={() => handleTabChange("myAttendance")}
+          /> */}
 
           <SidebarItem
             icon={<FaClock />}
             label="Leave Requests"
             active={activeTab === "leave"}
-            onClick={() => setActiveTab("leave")}
+            onClick={() => handleTabChange("leave")}
+          />
+
+          {/* <SidebarItem
+            icon={<FaChartBar />}
+            label="My Leave Balance"
+            active={activeTab === "myLeaveBalance"}
+            onClick={() => handleTabChange("myLeaveBalance")}
+          /> */}
+
+          <SidebarItem
+            icon={<FaCalendarCheck />}
+            label="Holidays"
+            active={activeTab === "holidays"}
+            onClick={() => handleTabChange("holidays")}
           />
           <SidebarItem
-          icon={<FaCalendarCheck/>}
-          label="Holidays"
-          active={activeTab==="Holidays"}
-          onClick={()=> setActiveTab("Holidays")}
-          />
+  icon={<FaChartBar />}
+  label="Reports"
+  active={activeTab === "reports"}
+  onClick={() => handleTabChange("reports")}
+/>
+
+
           <SidebarItem
             icon={<FaUser />}
             label="Profile"
             active={activeTab === "profile"}
-            onClick={() => setActiveTab("profile")}
+            onClick={() => handleTabChange("profile")}
           />
         </nav>
 
@@ -97,7 +135,7 @@ const ManagerDashboard = () => {
           <SidebarItem
             icon={<FaSignOutAlt />}
             label="Logout"
-            onClick={() => logout(navigate)}
+            onClick={handleLogout}
           />
         </div>
       </aside>
@@ -124,8 +162,11 @@ const ManagerDashboard = () => {
         <div className="content-area">
           {activeTab === "dashboard" && (
             <>
-              <h3>Overview</h3>
+              {/* <h3>Overview</h3> */}
               <p>Welcome back, {user.firstName} 👋</p>
+               {/* <h3>My Attendance</h3> */}
+              <PunchCard />
+              <EmployeeLeaveBalance />
             </>
           )}
 
@@ -157,19 +198,35 @@ const ManagerDashboard = () => {
               <DepartmentLeaveRequests />
             </>
           )}
-{activeTab === "myAttendance" && (
+
+          {/* {activeTab === "myAttendance" && (
+            <>
+              <h3>My Attendance</h3>
+              <PunchCard />
+            </>
+          )} */}
+
+          {/* {activeTab === "myLeaveBalance" && (
+            <>
+              <h3>My Leave Balance</h3>
+              <EmployeeLeaveBalance />
+            </>
+          )} */}
+{activeTab === "reports" && (
   <>
-    <h3>My Attendance</h3>
-    <PunchCard />
+    <h3>Department Reports</h3>
+    <ManagerReports />
   </>
 )}
 
           {activeTab === "profile" && <ProfileForm />}
-          {activeTab==="Holidays" && <HolidayList/>}
+
+          {activeTab === "holidays" && <HolidayList />}
+          
         </div>
       </div>
 
-      {/* ================= MODALS ================= */}
+      {/* ================= MODAL ================= */}
       <CreateEmployeeModal
         open={openModal}
         onClose={() => setOpenModal(false)}

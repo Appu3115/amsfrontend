@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef  } from "react";
 import api from "../api/axios";
 import "../styles/PunchCard.css";
 import { getUser } from "../utils/auth";
@@ -19,6 +19,7 @@ const PERMISSION_OPTIONS = [
 const PunchCard = () => {
   const user = getUser();
   const employeeId = user?.employeeId?.toUpperCase();
+const punchInTimeRef = useRef(null); // ✅ NEW
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -72,13 +73,17 @@ useEffect(() => {
       );
 
       if (res.data.loggedIn && res.data.sessionStartTime) {
-        const start = new Date(res.data.sessionStartTime);
+        // const start = new Date(res.data.sessionStartTime);
 
         setIsLoggedIn(true);
-        setLoginTime(start);
+       if (punchInTimeRef.current === null) {
+  punchInTimeRef.current =
+    Date.now() - (res.data.runningSeconds || 0) * 1000;
 
-        // 👇 backend already gives runningSeconds
-        setSeconds(res.data.runningSeconds || 0);
+  setSeconds(res.data.runningSeconds || 0);
+}
+setIsLoggedIn(true);
+
       }
     } catch (err) {
       console.error("Failed to restore attendance session", err);
@@ -91,15 +96,19 @@ useEffect(() => {
 
   /* ================= TIMER ================= */
   useEffect(() => {
-    if (!isLoggedIn || !loginTime) return;
+  if (!isLoggedIn || !punchInTimeRef.current) return;
 
-    const start = loginTime.getTime();
-    const interval = setInterval(() => {
-      setSeconds(Math.floor((Date.now() - start) / 1000));
-    }, 1000);
+  const interval = setInterval(() => {
+    setSeconds(
+      Math.floor(
+        (Date.now() - punchInTimeRef.current) / 1000
+      )
+    );
+  }, 1000);
 
-    return () => clearInterval(interval);
-  }, [isLoggedIn, loginTime]);
+  return () => clearInterval(interval);
+}, [isLoggedIn]);
+
 
   const formatTime = (s) => {
     const h = Math.floor(s / 3600);
@@ -125,8 +134,10 @@ useEffect(() => {
       );
 
       setIsLoggedIn(true);
-      setLoginTime(punchInTime);
-      setSeconds(0);
+     punchInTimeRef.current = Date.now(); // ✅ ADD THIS
+setLoginTime(punchInTime);           // keep for display if needed
+setSeconds(0);
+
       setWorkFromHome(false);
 
       setMessage(res.data.message || "Punch In successful");

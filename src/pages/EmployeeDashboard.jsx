@@ -5,8 +5,11 @@ import AttendanceHistory from "../components/AttendanceHistory";
 import EmployeeLeaveRecords from "../components/EmployeeLeaveRecords";
 import ProfileForm from "../components/ProfileForm";
 import PunchCard from "../components/PunchCard";
-import { getUser } from "../utils/auth";
+import { getUser, logout } from "../utils/auth";
 import HolidayList from "../components/HolidayList";
+import EmployeeLeaveBalance from "../components/EmployeeLeaveBalance";
+import { useNavigate } from "react-router-dom";
+import EmployeeReports from "../components/EmployeeReports";
 import {
   FaHome,
   FaCalendarCheck,
@@ -19,12 +22,28 @@ import {
 /* ---------- Employee Dashboard ---------- */
 const EmployeeDashboard = () => {
   const user = getUser();
+const navigate = useNavigate();
 
   const firstName = user?.firstName || "Employee";
   const lastName = user?.lastName || "";
   const avatarLetter = firstName.charAt(0).toUpperCase();
 
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  // ✅ Persist active menu
+  const [activeMenu, setActiveMenu] = useState(
+    sessionStorage.getItem("employee_active_menu") || "dashboard"
+  );
+
+  /* ================= MENU HANDLER ================= */
+  const handleMenuChange = (menu) => {
+    setActiveMenu(menu);
+    sessionStorage.setItem("employee_active_menu", menu);
+  };
+
+  /* ================= LOGOUT ================= */
+  const handleLogout = () => {
+    sessionStorage.removeItem("employee_active_menu");
+    logout(navigate);
+  };
 
   return (
     <div className="emp-layout">
@@ -37,21 +56,22 @@ const EmployeeDashboard = () => {
             ["dashboard", "Dashboard", <FaHome />],
             ["attendance", "Attendance", <FaCalendarCheck />],
             ["history", "Leave History", <FaHistory />],
-             ["holidays", "Holidays", <FaCalendarCheck />], 
+            // ["leaveBalance", "Leave Balance", <FaChartBar />],
+            ["holidays", "Holidays", <FaCalendarCheck />],
             ["statistics", "Statistics", <FaChartBar />],
             ["profile", "Profile", <FaUser />],
           ].map(([key, label, icon]) => (
             <div
               key={key}
               className={`emp-nav-item ${activeMenu === key ? "active" : ""}`}
-              onClick={() => setActiveMenu(key)}
+              onClick={() => handleMenuChange(key)}
             >
               <span className="emp-icon">{icon}</span>
               <span>{label}</span>
             </div>
           ))}
 
-          <div className="emp-nav-item logout">
+          <div className="emp-nav-item logout" onClick={handleLogout}>
             <FaSignOutAlt className="emp-icon" />
             <span>Logout</span>
           </div>
@@ -73,65 +93,50 @@ const EmployeeDashboard = () => {
         <main className="emp-content">
           {/* ---------- DASHBOARD ---------- */}
           {activeMenu === "dashboard" && (
-  <div className="emp-dashboard">
-    <div className="emp-dashboard-header">
-      <h2>Welcome, {firstName} 👋</h2>
-      <p>
-        Track your workday, manage attendance, and request permissions.
-      </p>
-    </div>
+            <div className="emp-dashboard">
+              <div className="emp-dashboard-header">
+                <h2>Welcome, {firstName} 👋</h2>
+                <p>
+                  Track your workday, manage attendance, and request permissions.
+                </p>
+              </div>
 
-    <div className="emp-dashboard-content">
-      <PunchCard />
-    </div>
-  </div>
-)}
+              <div className="emp-dashboard-content">
+                <PunchCard />
+              </div>
 
+              {/* 🔥 Leave Balance Snapshot */}
+              <div style={{ marginTop: "32px" }}>
+                <EmployeeLeaveBalance />
+              </div>
+            </div>
+          )}
 
           {/* ---------- ATTENDANCE ---------- */}
           {activeMenu === "attendance" && <AttendanceHistory />}
 
+          {/* ---------- LEAVE BALANCE ---------- */}
+          {/* {activeMenu === "leaveBalance" && (
+            <div className="emp-leave-balance-section">
+              <EmployeeLeaveBalance />
+            </div>
+          )} */}
+
           {/* ---------- LEAVE HISTORY ---------- */}
           {activeMenu === "history" && <EmployeeLeaveRecords />}
 
-{/* ---------- HOLIDAYS ---------- */}
-{activeMenu === "holidays" && (
-  <div className="emp-holiday-section">
-    <HolidayList title="Company Holidays" />
-  </div>
-)}
+          {/* ---------- HOLIDAYS ---------- */}
+          {activeMenu === "holidays" && (
+            <div className="emp-holiday-section">
+              <HolidayList title="Company Holidays" />
+            </div>
+          )}
 
-          {/* ---------- STATISTICS PAGE ---------- */}
+          {/* ---------- STATISTICS ---------- */}
+          {/* ---------- STATISTICS (REPORTS) ---------- */}
           {activeMenu === "statistics" && (
             <div className="emp-statistics-page">
-              <h2>Attendance Statistics</h2>
-
-              <div className="emp-stat-grid">
-                <div className="emp-stat-card">
-                  <span>Total Working Days</span>
-                  <strong>22</strong>
-                </div>
-
-                <div className="emp-stat-card">
-                  <span>Present Days</span>
-                  <strong>18</strong>
-                </div>
-
-                <div className="emp-stat-card">
-                  <span>Absent Days</span>
-                  <strong>2</strong>
-                </div>
-
-                <div className="emp-stat-card">
-                  <span>Leave Days</span>
-                  <strong>2</strong>
-                </div>
-              </div>
-
-              <p className="emp-stat-note">
-                * Statistics shown are sample values. Backend integration
-                can be added later.
-              </p>
+              <EmployeeReports /> {/* ✅ REAL REPORTS HERE */}
             </div>
           )}
 

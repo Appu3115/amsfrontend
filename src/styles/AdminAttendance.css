@@ -9,11 +9,17 @@
   --border: #e5e7eb;
 }
 
+/* ================= CONTAINER ================= */
 .admin-attendance-container {
   padding: 28px;
   background: var(--bg);
   min-height: 100vh;
   font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ================= HEADER ================= */
+.header {
+  margin-bottom: 16px;
 }
 
 .header h2 {
@@ -25,20 +31,61 @@
 .header p {
   margin-top: 4px;
   color: var(--text-muted);
+  font-size: 14px;
 }
 
+/* ================= FILTER BAR ================= */
+.admin-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.admin-filters select,
+.admin-filters input[type="text"],
+.admin-filters input[type="date"] {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  background: white;
+  color: var(--text-dark);
+  outline: none;
+  min-width: 160px;
+  transition: all 0.2s ease;
+}
+
+.admin-filters input[type="text"] {
+  min-width: 220px;
+}
+
+.admin-filters select:hover,
+.admin-filters input:hover {
+  border-color: var(--orange);
+}
+
+.admin-filters select:focus,
+.admin-filters input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
+}
+
+/* ================= TABLE CARD ================= */
 .table-card {
-  margin-top: 24px;
+  margin-top: 8px;
   background: white;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   overflow-x: auto;
 }
 
+/* ================= TABLE ================= */
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 1100px;
 }
 
 thead {
@@ -51,19 +98,21 @@ th {
   font-weight: 600;
   color: var(--text-dark);
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 td {
   padding: 14px;
   border-bottom: 1px solid var(--border);
   color: var(--text-dark);
+  white-space: nowrap;
 }
 
 tr:hover {
   background: #fffaf5;
 }
 
-/* Employee info */
+/* ================= EMPLOYEE INFO ================= */
 .emp-info {
   display: flex;
   flex-direction: column;
@@ -78,7 +127,7 @@ tr:hover {
   color: var(--text-muted);
 }
 
-/* Status badge */
+/* ================= STATUS BADGE ================= */
 .status {
   padding: 4px 10px;
   border-radius: 999px;
@@ -97,15 +146,55 @@ tr:hover {
   color: #991b1b;
 }
 
+.status.work_from_home,
 .status.wfh {
   background: #e0f2fe;
   color: #075985;
 }
 
-/* Loader */
+.status.half_day {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status.permission {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* ================= STATES ================= */
 .loader {
   padding: 40px;
   text-align: center;
   font-size: 16px;
   color: var(--text-muted);
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .admin-attendance-container {
+    padding: 18px;
+  }
+
+  .header h2 {
+    font-size: 22px;
+  }
+
+  .admin-filters input[type="text"],
+  .admin-filters select {
+    width: 100%;
+  }
+
+  th,
+  td {
+    padding: 10px;
+    font-size: 13px;
+  }
 }
