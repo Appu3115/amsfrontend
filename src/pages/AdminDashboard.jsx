@@ -7,7 +7,7 @@ import AdminAttendance from "../components/AdminAttendance";
 import CreateManager from "../components/CreateManager";
 import DailyCount from "../components/DailyCount";
 import HolidayAdmin from "../components/HolidayAdmin";
-
+import AdminReports from "../components/AdminReports";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -109,7 +109,8 @@ const AdminDashboard = () => {
             <span className="link-text">Leave Requests</span>
           </button>
 
-          <button className="nav-link">
+          <button className={`nav-link ${activePage === "reports" ? "active":""}`}
+          onClick={()=> handlePageChange("reports")}>
             <FaFileAlt className="icon" />
             <span className="link-text">Reports</span>
           </button>
@@ -142,7 +143,7 @@ const AdminDashboard = () => {
 
           {/* ===== Holidays ===== */}
           {activePage === "holidays" && <HolidayAdmin />}
-
+          {activePage === "reports" && <AdminReports/>}
           {/* ===== Employees ===== */}
           {activePage === "employees" && (
             <>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef  } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import api from "../api/axios";
 import "../styles/PunchCard.css";
 import { getUser } from "../utils/auth";
@@ -19,14 +19,16 @@ const PERMISSION_OPTIONS = [
 const PunchCard = () => {
   const user = getUser();
   const employeeId = user?.employeeId?.toUpperCase();
-const punchInTimeRef = useRef(null); // ✅ NEW
 
+  /* ================= REFS ================= */
+  const punchInTimeRef = useRef(null); // ✅ Attendance login time
+
+  /* ================= STATE ================= */
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const [workFromHome, setWorkFromHome] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginTime, setLoginTime] = useState(null);
   const [seconds, setSeconds] = useState(0);
   const [permission, setPermission] = useState(null);
 
@@ -53,63 +55,58 @@ const punchInTimeRef = useRef(null); // ✅ NEW
         setWorkingMinutes(res.data.workingMinutes);
         setHalfDayMinutes(res.data.halfDayMinutes);
       } catch (err) {
-        console.log(err);
-        console.error("Failed to load shift data");
+        console.error("Failed to load shift data", err);
       }
     };
 
     loadShift();
   }, [employeeId]);
 
-  /* ================= RESTORE SESSION (KEY FIX) ================= */
-/* ================= RESTORE SESSION ================= */
-useEffect(() => {
-  if (!employeeId) return;
-
-  const restoreSession = async () => {
-    try {
-      const res = await api.get(
-        `/attendance/current/${employeeId}`
-      );
-
-      if (res.data.loggedIn && res.data.sessionStartTime) {
-        // const start = new Date(res.data.sessionStartTime);
-
-        setIsLoggedIn(true);
-       if (punchInTimeRef.current === null) {
-  punchInTimeRef.current =
-    Date.now() - (res.data.runningSeconds || 0) * 1000;
-
-  setSeconds(res.data.runningSeconds || 0);
-}
-setIsLoggedIn(true);
-
-      }
-    } catch (err) {
-      console.error("Failed to restore attendance session", err);
-    }
-  };
-
-  restoreSession();
-}, [employeeId]);
-
-
-  /* ================= TIMER ================= */
+  /* ================= RESTORE ATTENDANCE SESSION ================= */
   useEffect(() => {
-  if (!isLoggedIn || !punchInTimeRef.current) return;
+    if (!employeeId) return;
 
-  const interval = setInterval(() => {
-    setSeconds(
-      Math.floor(
-        (Date.now() - punchInTimeRef.current) / 1000
-      )
-    );
-  }, 1000);
+    const restoreSession = async () => {
+      try {
+        const res = await api.get(`/attendance/current/${employeeId}`);
 
-  return () => clearInterval(interval);
-}, [isLoggedIn]);
+        // ✅ ONLY attendance login time is used
+        if (res.data.loggedIn && res.data.sessionStartTime) {
+          const loginMillis = new Date(
+            res.data.sessionStartTime
+          ).getTime();
 
+          punchInTimeRef.current = loginMillis;
+          setIsLoggedIn(true);
 
+          setSeconds(
+            Math.floor((Date.now() - loginMillis) / 1000)
+          );
+        }
+      } catch (err) {
+        console.error("Failed to restore attendance session", err);
+      }
+    };
+
+    restoreSession();
+  }, [employeeId]);
+
+  /* ================= ATTENDANCE TIMER ================= */
+  useEffect(() => {
+    if (!isLoggedIn || !punchInTimeRef.current) return;
+
+    const interval = setInterval(() => {
+      setSeconds(
+        Math.floor(
+          (Date.now() - punchInTimeRef.current) / 1000
+        )
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  /* ================= TIME FORMAT ================= */
   const formatTime = (s) => {
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
@@ -129,17 +126,12 @@ setIsLoggedIn(true);
         params: { employeeId, workFromHome },
       });
 
-      const punchInTime = new Date(
-        res.data.punchInTime || Date.now()
-      );
-
+      // ✅ Attendance timer starts NOW
+      punchInTimeRef.current = Date.now();
       setIsLoggedIn(true);
-     punchInTimeRef.current = Date.now(); // ✅ ADD THIS
-setLoginTime(punchInTime);           // keep for display if needed
-setSeconds(0);
+      setSeconds(0);
 
       setWorkFromHome(false);
-
       setMessage(res.data.message || "Punch In successful");
     } catch (err) {
       setMessage(getErrorMessage(err, "Punch In failed"));
@@ -159,7 +151,7 @@ setSeconds(0);
       });
 
       setIsLoggedIn(false);
-      setLoginTime(null);
+      punchInTimeRef.current = null;
       setSeconds(0);
 
       setMessage(res.data.message || "Punch Out successful");

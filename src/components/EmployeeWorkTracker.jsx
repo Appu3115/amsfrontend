@@ -3,14 +3,13 @@ import api from "../api/axios";
 import "../styles/EmployeeWorkTracker.css";
 
 /* ================= TIME FORMAT ================= */
-const formatDuration = (minutes = 0) => {
-  const seconds = Math.max(minutes, 0) * 60;
-  return new Date(seconds * 1000).toISOString().substring(11, 19);
-};
-
 const formatSeconds = (seconds = 0) =>
   new Date(seconds * 1000).toISOString().substring(11, 19);
 
+const formatMinutes = (minutes = 0) =>
+  formatSeconds(minutes * 60);
+
+/* ================= COMPONENT ================= */
 const EmployeeWorkTracker = ({ employeeId }) => {
   const [status, setStatus] = useState("IDLE");
   const [runningSeconds, setRunningSeconds] = useState(0);
@@ -23,8 +22,17 @@ const EmployeeWorkTracker = ({ employeeId }) => {
   });
 
   const timerRef = useRef(null);
+  const heartbeatRef = useRef(null);
+  const lastPulseRef = useRef(0);
 
   /* ================= TIMER ================= */
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
   const startTimer = (initialSeconds = 0) => {
     stopTimer();
     setRunningSeconds(initialSeconds);
@@ -34,18 +42,39 @@ const EmployeeWorkTracker = ({ employeeId }) => {
     }, 1000);
   };
 
-  const stopTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  };
+  /* ================= ACTIVITY PULSE ================= */
+  const sendPulse = useCallback(
+    async (type) => {
+      const now = Date.now();
+
+      // ⏱ throttle real activity (avoid DB spam)
+      if (type !== "HEARTBEAT" && now - lastPulseRef.current < 3000) {
+        return;
+      }
+
+      lastPulseRef.current = now;
+
+      try {
+        await api.post("/api/activity/pulse", null, {
+          params: { employeeId, type },
+        });
+      } catch (err) {
+        console.error("Pulse failed", type, err);
+      }
+    },
+    [employeeId]
+  );
 
   /* ================= LOAD CURRENT SESSION ================= */
   const loadCurrentStatus = useCallback(async () => {
     try {
       const res = await api.get(`/attendance/current/${employeeId}`);
-      const { loggedIn, status, runningSeconds } = res.data;
+
+      const {
+        loggedIn,
+        status: backendStatus,
+        runningSeconds: backendSeconds,
+      } = res.data;
 
       stopTimer();
 
@@ -55,10 +84,10 @@ const EmployeeWorkTracker = ({ employeeId }) => {
         return;
       }
 
-      setStatus(status);
+      setStatus(backendStatus);
 
-      if (status !== "IDLE") {
-        startTimer(runningSeconds || 0);
+      if (backendStatus !== "IDLE") {
+        startTimer(backendSeconds ?? 0);
       } else {
         setRunningSeconds(0);
       }
@@ -77,74 +106,96 @@ const EmployeeWorkTracker = ({ employeeId }) => {
         ? res.data.find((r) => r.attendanceDate === today)
         : null;
 
-      if (todayRecord) {
-        setSummary({
-          work: todayRecord.totalWorkMinutes ?? 0,
-          break: todayRecord.totalBreakMinutes ?? 0,
-          idle: todayRecord.idleMinutes ?? 0,
-          productive: todayRecord.productiveMinutes ?? 0,
-        });
-      } else {
+      if (!todayRecord) {
         setSummary({ work: 0, break: 0, idle: 0, productive: 0 });
+        return;
       }
+
+      setSummary({
+        work: todayRecord.totalWorkMinutes ?? 0,
+        break: todayRecord.totalBreakMinutes ?? 0,
+        idle: todayRecord.idleMinutes ?? 0,
+        productive: todayRecord.productiveMinutes ?? 0,
+      });
     } catch (err) {
       console.error("Failed to load summary", err);
     }
   }, [employeeId]);
 
   /* ================= ACTIONS ================= */
-
   const pause = async (type) => {
-    // 🔥 Instant UI update
-    setStatus(type);
-    startTimer(0);
-
     try {
       await api.post("/attendance/pause", null, {
         params: { employeeId, type },
       });
-
       await loadCurrentStatus();
     } catch (err) {
       console.error("Pause failed", err);
-      await loadCurrentStatus(); // rollback
+      await loadCurrentStatus();
     }
   };
 
   const resume = async () => {
-    // 🔥 Instant UI update
-    setStatus("WORK");
-    startTimer(0);
-
     try {
       await api.post("/attendance/resume", null, {
         params: { employeeId },
       });
 
-      // Sync backend truth
-      await Promise.all([
-        loadCurrentStatus(),
-        loadSummary(),
-      ]);
+      await Promise.all([loadCurrentStatus(), loadSummary()]);
     } catch (err) {
       console.error("Resume failed", err);
-      await loadCurrentStatus(); // rollback
+      await loadCurrentStatus();
     }
   };
 
-  /* ================= INITIAL LOAD ================= */
+  /* ================= ACTIVITY LISTENERS ================= */
   useEffect(() => {
-    loadCurrentStatus();
-    loadSummary();
+    const onMouse = () => sendPulse("MOUSE");
+    const onKey = () => sendPulse("KEYBOARD");
+    const onFocus = () => sendPulse("SCREEN_ACTIVE");
 
-    return () => stopTimer();
-  }, [loadCurrentStatus, loadSummary]);
+    window.addEventListener("mousemove", onMouse);
+    window.addEventListener("mousedown", onMouse);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) sendPulse("SCREEN_ACTIVE");
+    });
+
+    // ❤️ Heartbeat (important for long idle tabs)
+    heartbeatRef.current = setInterval(() => {
+      sendPulse("HEARTBEAT");
+    }, 30_000);
+
+    return () => {
+      window.removeEventListener("mousemove", onMouse);
+      window.removeEventListener("mousedown", onMouse);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("focus", onFocus);
+
+      clearInterval(heartbeatRef.current);
+      stopTimer();
+    };
+  }, [sendPulse]);
+
+  /* ================= INITIAL LOAD ================= */
+ useEffect(() => {
+  loadCurrentStatus();
+  loadSummary();
+
+  return () => stopTimer();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [employeeId]);
+
+
+  /* ================= UI ================= */
+  const isWorking = status === "WORK";
+  const isPaused = status === "BREAK" || status === "LUNCH";
 
   return (
     <div className="tracker-container">
       <h2 className="tracker-title">My Work Session</h2>
 
-      {/* STATUS + TIMER */}
       <div className="status-card">
         <div className={`status ${status.toLowerCase()}`}>
           {status}
@@ -154,35 +205,20 @@ const EmployeeWorkTracker = ({ employeeId }) => {
         </div>
       </div>
 
-      {/* ACTIONS */}
       <div className="actions">
-        <button
-          type="button"
-          onClick={() => pause("BREAK")}
-          disabled={status !== "WORK"}
-        >
+        <button onClick={() => pause("BREAK")} disabled={!isWorking}>
           Break
         </button>
 
-        <button
-          type="button"
-          onClick={() => pause("LUNCH")}
-          disabled={status !== "WORK"}
-        >
+        <button onClick={() => pause("LUNCH")} disabled={!isWorking}>
           Lunch
         </button>
 
-        <button
-          type="button"
-          className="dark"
-          onClick={resume}
-          disabled={status === "WORK"}
-        >
+        <button className="dark" onClick={resume} disabled={!isPaused}>
           Resume
         </button>
       </div>
 
-      {/* SUMMARY */}
       <div className="summary-grid">
         <Summary title="Total Work" value={summary.work} />
         <Summary title="Productive" value={summary.productive} />
@@ -197,7 +233,7 @@ const EmployeeWorkTracker = ({ employeeId }) => {
 const Summary = ({ title, value }) => (
   <div className="summary-card">
     <p>{title}</p>
-    <h4>{formatDuration(value)}</h4>
+    <h4>{formatMinutes(value)}</h4>
   </div>
 );
 
