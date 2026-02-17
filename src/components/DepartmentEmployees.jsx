@@ -15,8 +15,6 @@ const DepartmentEmployees = () => {
   const [activeTab, setActiveTab] = useState(TABS.ALL);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
-
-  /* ✅ PROFILE MODAL STATE */
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
   const managerData = sessionStorage.getItem("user_manager");
@@ -30,7 +28,6 @@ const DepartmentEmployees = () => {
     applyFilter(activeTab);
   }, [employees, activeTab]);
 
-  /* ================= LOAD ================= */
   const loadEmployees = async () => {
     try {
       if (!manager?.employeeId) return;
@@ -47,7 +44,6 @@ const DepartmentEmployees = () => {
     }
   };
 
-  /* ================= FILTER ================= */
   const applyFilter = (tab) => {
     switch (tab) {
       case TABS.PROBATION:
@@ -65,73 +61,70 @@ const DepartmentEmployees = () => {
     }
   };
 
-  /* ================= DELETE EMPLOYEE ================= */
-const deleteEmployee = async (employeeId) => {
-  const ok = window.confirm(
-    `Are you sure you want to delete employee ${employeeId}?`
-  );
-  if (!ok) return;
+  /* ===== REQUEST CONFIRMATION ===== */
+  const requestConfirmation = async (employeeId) => {
+    const ok = window.confirm(
+      `Send confirmation request to admin for ${employeeId}?`
+    );
+    if (!ok) return;
 
-  try {
-    setActionLoading(employeeId);
-
-    await api.delete(`/user/delete/${employeeId}`);
-
-    await loadEmployees(); // refresh table
-  } catch (err) {
-    alert(err.response?.data || "Failed to delete employee");
-  } finally {
-    setActionLoading(null);
-  }
-};
-
-  /* ================= CONFIRM ACTION ================= */
-  const confirmEmployee = async (employeeId) => {
     try {
       setActionLoading(employeeId);
 
-      await api.put("/user/confirm-employee", null, {
-        params: {
-          employeeId,
-          managerEmployeeId: manager.employeeId,
-        },
-      });
+      await api.put(
+        `/user/${employeeId}/request-confirmation`,
+        null,
+        {
+          params: {
+            managerEmployeeId: manager.employeeId,
+          },
+        }
+      );
 
       await loadEmployees();
     } catch (err) {
-      alert(err.response?.data || "Failed to confirm employee");
+      alert(err.response?.data || "Failed to request confirmation");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  /* ===== DELETE ===== */
+  const deleteEmployee = async (employeeId) => {
+    const ok = window.confirm(
+      `Are you sure you want to delete employee ${employeeId}?`
+    );
+    if (!ok) return;
+
+    try {
+      setActionLoading(employeeId);
+
+      await api.delete(`/user/delete/${employeeId}`);
+      await loadEmployees();
+    } catch (err) {
+      alert(err.response?.data || "Failed to delete employee");
     } finally {
       setActionLoading(null);
     }
   };
 
   if (loading) {
-    return (
-      <div className="table-loader">
-        Loading employees...
-      </div>
-    );
+    return <div className="table-loader">Loading employees...</div>;
   }
 
   return (
     <div className="dept-table-wrapper">
-
-      {/* ===== HEADER ===== */}
       <div className="dept-table-header">
         <h3>Department Employees</h3>
-        <span className="count-pill">
-          {filtered.length}
-        </span>
+        <span className="count-pill">{filtered.length}</span>
       </div>
 
-      {/* ===== TABS ===== */}
+      {/* TABS */}
       <div className="emp-tabs">
         {Object.values(TABS).map((tab) => (
           <button
             key={tab}
-            className={`emp-tab ${
-              activeTab === tab ? "active" : ""
-            }`}
+            className={`emp-tab ${activeTab === tab ? "active" : ""}`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -139,7 +132,7 @@ const deleteEmployee = async (employeeId) => {
         ))}
       </div>
 
-      {/* ===== TABLE ===== */}
+      {/* TABLE */}
       <div className="table-container">
         <table className="dept-table">
           <thead>
@@ -151,10 +144,6 @@ const deleteEmployee = async (employeeId) => {
               <th>Status</th>
               <th>Shift</th>
               <th>Action</th>
-
-              {activeTab === TABS.PROBATION && (
-                <th>Action</th>
-              )}
             </tr>
           </thead>
 
@@ -163,7 +152,6 @@ const deleteEmployee = async (employeeId) => {
               <tr key={emp.employeeId}>
                 <td>{emp.employeeId}</td>
 
-                {/* ✅ CLICK NAME TO OPEN PROFILE */}
                 <td>
                   <span
                     className="emp-name-link"
@@ -182,54 +170,53 @@ const deleteEmployee = async (employeeId) => {
                   <span
                     className={`status-pill ${emp.status.toLowerCase()}`}
                   >
-                    {emp.status}
+                    {emp.status.replace("_", " ")}
                   </span>
                 </td>
 
                 <td>
                   {emp.shift?.shiftName}
                   <div className="shift-time">
-                    {formatTime12Hour(emp.shift?.startTime)}{" "}
-                    -{" "}
+                    {formatTime12Hour(emp.shift?.startTime)} -{" "}
                     {formatTime12Hour(emp.shift?.endTime)}
                   </div>
                 </td>
 
                 <td className="action-cell">
-  {activeTab === TABS.PROBATION && (
-    <button
-      className="confirm-btn"
-      disabled={actionLoading === emp.employeeId}
-      onClick={() => confirmEmployee(emp.employeeId)}
-    >
-      {actionLoading === emp.employeeId
-        ? "Confirming..."
-        : "Confirm"}
-    </button>
-  )}
+                  {/* SHOW REQUEST ONLY IN PROBATION TAB */}
+                  {activeTab === TABS.PROBATION && (
+                    <button
+                      className="request-btn"
+                      disabled={actionLoading === emp.employeeId}
+                      onClick={() =>
+                        requestConfirmation(emp.employeeId)
+                      }
+                    >
+                      {actionLoading === emp.employeeId
+                        ? "Sending..."
+                        : "Request"}
+                    </button>
+                  )}
 
-  <button
-    className="delete-btn"
-    disabled={actionLoading === emp.employeeId}
-    onClick={() => deleteEmployee(emp.employeeId)}
-  >
-    {actionLoading === emp.employeeId
-      ? "Deleting..."
-      : "Delete"}
-  </button>
-</td>
-
+                  {/* SHOW DELETE ONLY OUTSIDE PROBATION TAB */}
+                  {activeTab !== TABS.PROBATION && (
+                    <button
+                      className="delete-btn"
+                      disabled={actionLoading === emp.employeeId}
+                      onClick={() => deleteEmployee(emp.employeeId)}
+                    >
+                      {actionLoading === emp.employeeId
+                        ? "Processing..."
+                        : "Delete"}
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
 
             {filtered.length === 0 && (
               <tr>
-                <td
-                  colSpan={
-                    activeTab === TABS.PROBATION ? 7 : 6
-                  }
-                  className="empty-row"
-                >
+                <td colSpan={7} className="empty-row">
                   No employees found
                 </td>
               </tr>
@@ -238,7 +225,6 @@ const deleteEmployee = async (employeeId) => {
         </table>
       </div>
 
-      {/* ✅ EMPLOYEE PROFILE MODAL */}
       {selectedEmployeeId && (
         <EmployeeProfileModal
           employeeId={selectedEmployeeId}
@@ -249,7 +235,6 @@ const deleteEmployee = async (employeeId) => {
   );
 };
 
-/* ================= HELPERS ================= */
 const formatTime12Hour = (time) => {
   if (!time) return "";
   const [hourStr, minute] = time.split(":");

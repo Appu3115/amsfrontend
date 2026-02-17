@@ -6,15 +6,14 @@ import EmployeeProfileModal from "./EmployeeProfileModal";
 
 const AllEmployee = () => {
   const [employees, setEmployees] = useState([]);
+  const [confirmationRequests, setConfirmationRequests] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-const [actionLoading, setActionLoading] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
-  /* Tabs */
   const [activeTab, setActiveTab] = useState("EMPLOYEE");
 
-  /* Logged-in user */
   const loggedUser = getUser();
   const loggedInEmployeeId = loggedUser?.employeeId;
   const loggedInRole = loggedUser?.role;
@@ -29,23 +28,33 @@ const [actionLoading, setActionLoading] = useState(null);
   /* Profile modal */
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
-  /* ================= FETCH DATA ================= */
+  /* ================= FETCH ================= */
 
   useEffect(() => {
     fetchEmployees();
     fetchShifts();
+    fetchConfirmationRequests();
   }, []);
 
   const fetchEmployees = async () => {
     try {
       setLoading(true);
       const res = await api.get("/user/getAllEmployees");
-      setEmployees(res.data);
+      setEmployees(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error(err);
-      setError("Failed to load employee details");
+      console.log(err)
+      setError("Failed to load employees");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchConfirmationRequests = async () => {
+    try {
+      const res = await api.get("/user/confirmation-requests");
+      setConfirmationRequests(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -58,44 +67,52 @@ const [actionLoading, setActionLoading] = useState(null);
     }
   };
 
-  /* ================= FILTERS ================= */
+  /* ================= CONFIRM / REJECT ================= */
 
-  const managers = employees.filter((emp) => emp.role === "MANAGER");
-  const employeeList = employees.filter((emp) => emp.role === "EMPLOYEE");
-
-  const currentData =
-    activeTab === "MANAGER" ? managers : employeeList;
-
-  /* ================= UTILS ================= */
-
-  const formatTime12Hour = (time) => {
-    if (!time) return "";
-    const [hourStr, minute] = time.split(":");
-    let hour = parseInt(hourStr, 10);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    hour = hour % 12 || 12;
-    return `${hour}:${minute} ${ampm}`;
+  const confirmEmployee = async (employeeId) => {
+    try {
+      setActionLoading(employeeId);
+      await api.put(`/user/${employeeId}/confirm`);
+      await fetchEmployees();
+      await fetchConfirmationRequests();
+    } catch (err) {
+      alert(err.response?.data || "Confirmation failed");
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  /* ================= DELETE EMPLOYEE ================= */
-const deleteEmployee = async (employeeId) => {
-  const ok = window.confirm(
-    `Are you sure you want to delete employee ${employeeId}?`
-  );
-  if (!ok) return;
+  const rejectEmployee = async (employeeId) => {
+    try {
+      setActionLoading(employeeId);
+      await api.put(`/user/${employeeId}/reject`);
+      await fetchEmployees();
+      await fetchConfirmationRequests();
+    } catch (err) {
+      alert(err.response?.data || "Rejection failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-  try {
-    setActionLoading(employeeId);
+  /* ================= DELETE ================= */
 
-    await api.delete(`/user/delete/${employeeId}`);
+  const deleteEmployee = async (employeeId) => {
+    const ok = window.confirm(
+      `Are you sure you want to delete employee ${employeeId}?`
+    );
+    if (!ok) return;
 
-    await fetchEmployees(); // refresh list
-  } catch (err) {
-    alert(err.response?.data || "Failed to delete employee");
-  } finally {
-    setActionLoading(null);
-  }
-};
+    try {
+      setActionLoading(employeeId);
+      await api.delete(`/user/delete/${employeeId}`);
+      await fetchEmployees();
+    } catch (err) {
+      alert(err.response?.data || "Delete failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   /* ================= SHIFT MODAL ================= */
 
@@ -114,7 +131,7 @@ const deleteEmployee = async (employeeId) => {
 
   const updateShift = async () => {
     if (!selectedShiftId || !startDate) {
-      setShiftMsg("Shift and start date are required");
+      setShiftMsg("Shift and start date required");
       return;
     }
 
@@ -135,14 +152,20 @@ const deleteEmployee = async (employeeId) => {
       fetchEmployees();
       setTimeout(closeShiftModal, 800);
     } catch (err) {
-      setShiftMsg(err.response?.data || "Shift update failed");
+      console.log(err)
+      setShiftMsg("Shift update failed");
     }
   };
 
-  /* ================= RENDER ================= */
+  /* ================= FILTER ================= */
 
-  if (loading) return <p className="loading-text">Loading employees...</p>;
-  if (error) return <p className="error-text">{error}</p>;
+  const managers = employees.filter((e) => e.role === "MANAGER");
+  const employeeList = employees.filter((e) => e.role === "EMPLOYEE");
+
+  const currentData =
+    activeTab === "MANAGER" ? managers : employeeList;
+
+  /* ================= MAIN TABLE ================= */
 
   const renderTable = (data) => (
     <div className="table-wrapper">
@@ -165,15 +188,13 @@ const deleteEmployee = async (employeeId) => {
             <tr key={emp.employeeId}>
               <td>{emp.employeeId}</td>
 
-              {/* ✅ CLICK NAME TO OPEN PROFILE */}
               <td>
                 <span
                   className="emp-name-link"
-                  onClick={() => {
-                    if (loggedInRole === "ADMIN") {
-                      setSelectedEmployeeId(emp.employeeId);
-                    }
-                  }}
+                  onClick={() =>
+                    loggedInRole === "ADMIN" &&
+                    setSelectedEmployeeId(emp.employeeId)
+                  }
                 >
                   {emp.firstName} {emp.lastName}
                 </span>
@@ -181,50 +202,41 @@ const deleteEmployee = async (employeeId) => {
 
               <td>{emp.email}</td>
               <td>{emp.phone}</td>
-
-              <td>
-                <span className={`role-badge ${emp.role.toLowerCase()}`}>
-                  {emp.role}
-                </span>
-              </td>
-
+              <td>{emp.role}</td>
               <td>{emp.department?.deptName || "-"}</td>
 
               <td>
                 {emp.shift
-                  ? `${emp.shift.shiftName} (${formatTime12Hour(
-                      emp.shift.startTime
-                    )} - ${formatTime12Hour(emp.shift.endTime)})`
+                  ? `${emp.shift.shiftName} (${emp.shift.startTime} - ${emp.shift.endTime})`
                   : "-"}
               </td>
 
-             <td className="action-cell">
-  {/* UPDATE SHIFT */}
-  {emp.role === "EMPLOYEE" &&
-    (loggedInRole === "ADMIN" ||
-      loggedInRole === "MANAGER") && (
-      <button
-        className="shift-btn"
-        onClick={() => openShiftModal(emp)}
-      >
-        Update Shift
-      </button>
-    )}
+              <td className="action-cell">
+                {emp.role === "EMPLOYEE" &&
+                  (loggedInRole === "ADMIN" ||
+                    loggedInRole === "MANAGER") && (
+                    <button
+                      className="shift-btn"
+                      onClick={() => openShiftModal(emp)}
+                    >
+                      Update Shift
+                    </button>
+                  )}
 
-  {/* DELETE (ADMIN ONLY) */}
-  {loggedInRole === "ADMIN" && (
-    <button
-      className="delete-btn"
-      disabled={actionLoading === emp.employeeId}
-      onClick={() => deleteEmployee(emp.employeeId)}
-    >
-      {actionLoading === emp.employeeId
-        ? "Deleting..."
-        : "Delete"}
-    </button>
-  )}
-</td>
-
+                {loggedInRole === "ADMIN" && (
+                  <button
+                    className="delete-btn"
+                    disabled={actionLoading === emp.employeeId}
+                    onClick={() =>
+                      deleteEmployee(emp.employeeId)
+                    }
+                  >
+                    {actionLoading === emp.employeeId
+                      ? "Deleting..."
+                      : "Delete"}
+                  </button>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -232,43 +244,106 @@ const deleteEmployee = async (employeeId) => {
     </div>
   );
 
+  /* ================= REQUEST TABLE ================= */
+
+  const renderRequestsTable = () => (
+    <div className="table-wrapper">
+      <table className="emp-table">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Shift</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {confirmationRequests.map((emp) => (
+            <tr key={emp.employeeId}>
+              <td>{emp.employeeId}</td>
+              <td>{emp.employeeName}</td>
+              <td>{emp.email}</td>
+              <td>{emp.phone}</td>
+              <td>{emp.shift || "-"}</td>
+              <td>{emp.status}</td>
+
+              <td className="action-cell">
+                <button
+                  className="confirm-btn"
+                  disabled={actionLoading === emp.employeeId}
+                  onClick={() =>
+                    confirmEmployee(emp.employeeId)
+                  }
+                >
+                  Accept
+                </button>
+
+                <button
+                  className="reject-btn"
+                  disabled={actionLoading === emp.employeeId}
+                  onClick={() =>
+                    rejectEmployee(emp.employeeId)
+                  }
+                >
+                  Reject
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  /* ================= RENDER ================= */
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
   return (
     <div className="admin-emp-container">
-      <h2 className="page-title">Employee Management</h2>
-      <p className="page-subtitle">View and manage managers & employees</p>
+      <h2>Employee Management</h2>
 
-      {/* TABS */}
       <div className="emp-tabs">
         <button
-          className={`tab-btn ${activeTab === "MANAGER" ? "active" : ""}`}
+          className={activeTab === "MANAGER" ? "active" : ""}
           onClick={() => setActiveTab("MANAGER")}
         >
           Managers ({managers.length})
         </button>
 
         <button
-          className={`tab-btn ${activeTab === "EMPLOYEE" ? "active" : ""}`}
+          className={activeTab === "EMPLOYEE" ? "active" : ""}
           onClick={() => setActiveTab("EMPLOYEE")}
         >
           Employees ({employeeList.length})
         </button>
+
+        <button
+          className={activeTab === "REQUESTS" ? "active" : ""}
+          onClick={() => setActiveTab("REQUESTS")}
+        >
+          Confirmation Requests ({confirmationRequests.length})
+        </button>
       </div>
 
-      {currentData.length > 0 ? (
-        renderTable(currentData)
-      ) : (
-        <p className="empty-text">No records found</p>
-      )}
+      {activeTab === "REQUESTS"
+        ? confirmationRequests.length > 0
+          ? renderRequestsTable()
+          : <p>No pending confirmation requests</p>
+        : currentData.length > 0
+        ? renderTable(currentData)
+        : <p>No records found</p>}
 
       {/* SHIFT MODAL */}
       {showShiftModal && selectedEmp && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>Update Shift</h3>
-
-            <p className="emp-name">
-              {selectedEmp.firstName} ({selectedEmp.employeeId})
-            </p>
 
             <label>Shift</label>
             <select
@@ -278,8 +353,7 @@ const deleteEmployee = async (employeeId) => {
               <option value="">Select shift</option>
               {shifts.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.shiftName} ({formatTime12Hour(s.startTime)} -{" "}
-                  {formatTime12Hour(s.endTime)})
+                  {s.shiftName}
                 </option>
               ))}
             </select>
@@ -291,13 +365,11 @@ const deleteEmployee = async (employeeId) => {
               onChange={(e) => setStartDate(e.target.value)}
             />
 
-            {shiftMsg && <p className="msg">{shiftMsg}</p>}
+            {shiftMsg && <p>{shiftMsg}</p>}
 
             <div className="modal-actions">
               <button onClick={updateShift}>Save</button>
-              <button className="cancel" onClick={closeShiftModal}>
-                Cancel
-              </button>
+              <button onClick={closeShiftModal}>Cancel</button>
             </div>
           </div>
         </div>
