@@ -3,7 +3,6 @@ import api from "../api/axios";
 import "../styles/CreateManager.css"; // reuse same CSS
 
 const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
-  const manager = JSON.parse(sessionStorage.getItem("user_manager"));
 
   const initialFormState = {
     firstName: "",
@@ -11,7 +10,7 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
     email: "",
     phone: "",
     joinDate: "",
-    status: "PROBATION", // ✅ DEFAULT
+    status: "PROBATION",
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -19,7 +18,6 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // ===== RESET ON OPEN =====
   useEffect(() => {
     if (!open) return;
     setForm(initialFormState);
@@ -44,10 +42,11 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
       await api.post(
-        `/user/create-employee?managerEmployeeId=${manager.employeeId}`,
+        "/user/create-employee",
         form
       );
 
@@ -69,7 +68,6 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
     <div className="modal-overlay">
       <div className="modal-box">
 
-        {/* Close button */}
         <button className="close-btn" onClick={handleClose}>×</button>
 
         <div className="modal-header">
@@ -118,7 +116,6 @@ const CreateEmployeeModal = ({ open, onClose, onSuccess }) => {
             required
           />
 
-          {/* ✅ NEW STATUS DROPDOWN */}
           <select
             name="status"
             value={form.status}

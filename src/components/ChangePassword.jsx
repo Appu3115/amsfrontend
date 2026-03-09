@@ -2,13 +2,9 @@ import { useState, useMemo } from "react";
 import api from "../api/axios";
 import "../styles/ChangePassword.css";
 
-/*
-  POPUP-ONLY CHANGE PASSWORD
-  - Triggered from dashboard button
-  - Auto-detects FIRST vs NORMAL change
-*/
 const ChangePassword = ({ onClose }) => {
-  /* ================= USER FROM SESSION ================= */
+
+  /* ===== Detect user only for UI logic (not identity) ===== */
   const user = useMemo(() => {
     const manager = sessionStorage.getItem("user_manager");
     const employee = sessionStorage.getItem("user_employee");
@@ -23,7 +19,6 @@ const ChangePassword = ({ onClose }) => {
       : null;
   }, []);
 
-  const employeeId = user?.employeeId;
   const role = user?.role;
   const isFirstChange = user?.forcePasswordChange === true;
 
@@ -54,31 +49,25 @@ const ChangePassword = ({ onClose }) => {
       return;
     }
 
-    if (!employeeId) {
-      setError(true);
-      setMessage("Session expired. Please login again.");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const payload = {
-        employeeId,
         newPassword: form.newPassword,
         confirmPassword: form.confirmPassword
       };
 
-      // Old password required ONLY for normal change
+      // Only include oldPassword for normal change
       if (!isFirstChange) {
         payload.oldPassword = form.oldPassword;
       }
 
       const res = await api.post("/user/change-password", payload);
+
       setMessage(res.data || "Password updated successfully");
 
-      // ✅ Update session flag after first change
-      if (isFirstChange) {
+      // Update session flag after first change
+      if (isFirstChange && user) {
         const updatedUser = { ...user, forcePasswordChange: false };
 
         if (role === "MANAGER") {
@@ -90,7 +79,6 @@ const ChangePassword = ({ onClose }) => {
         }
       }
 
-      // Auto-close after success
       setTimeout(onClose, 800);
 
       setForm({
@@ -123,6 +111,7 @@ const ChangePassword = ({ onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="cp-form">
+
           {!isFirstChange && (
             <div className="form-group">
               <label>Old Password</label>
@@ -172,6 +161,7 @@ const ChangePassword = ({ onClose }) => {
           >
             {loading ? "Updating..." : "Change Password"}
           </button>
+
         </form>
       </div>
     </div>

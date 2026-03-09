@@ -3,7 +3,6 @@ import api from "../api/axios";
 import "../styles/CreateManager.css";
 
 const CreateManager = ({ isOpen, onClose, onSuccess }) => {
-  const admin = JSON.parse(sessionStorage.getItem("user_admin"));
 
   const initialFormState = {
     firstName: "",
@@ -22,7 +21,6 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // 🔹 Format time to 12h
   const formatTime12h = (time24) => {
     if (!time24) return "";
     const [h, m] = time24.split(":");
@@ -32,7 +30,6 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
     return `${hour}:${m} ${ampm}`;
   };
 
-  // ================= FETCH SHIFTS + DEPARTMENTS =================
   useEffect(() => {
     if (!isOpen) return;
 
@@ -49,6 +46,7 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
 
         setShifts(shiftRes.data);
         setDepartments(deptRes.data);
+
       } catch (e) {
         console.error(e);
         setError("Unable to load data");
@@ -72,14 +70,14 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
     setError("");
   };
 
-  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
       await api.post(
-        `/user/create-manager?adminEmployeeId=${admin.employeeId}`,
+        "/user/create-manager",
         {
           ...form,
           shiftId: Number(form.shiftId)
@@ -104,7 +102,6 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
     <div className="modal-overlay">
       <div className="modal-box">
 
-        {/* CLOSE */}
         <button className="close-btn" onClick={handleClose}>×</button>
 
         <div className="modal-header">
@@ -145,7 +142,6 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
             required
           />
 
-          {/* ✅ DEPARTMENT DROPDOWN */}
           <select
             name="departmentName"
             value={form.departmentName}
@@ -168,7 +164,6 @@ const CreateManager = ({ isOpen, onClose, onSuccess }) => {
             required
           />
 
-          {/* SHIFT DROPDOWN */}
           <select
             name="shiftId"
             value={form.shiftId}

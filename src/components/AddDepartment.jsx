@@ -20,7 +20,7 @@ const AddDepartment = () => {
   /* ================= FETCH ================= */
   const fetchDepartments = async () => {
     try {
-      const res = await api.get("/department/fetchAll"); // ✅ FIXED
+      const res = await api.get("/department/fetchAll"); 
       setDepartments(res.data);
     } catch (err) {
       console.error(err);
@@ -34,7 +34,6 @@ const AddDepartment = () => {
     fetchDepartments();
   }, []);
 
-  /* ================= DEPARTMENT MODAL ================= */
   const openAddModal = () => {
     setDeptName("");
     setEditingId(null);
@@ -83,10 +82,10 @@ const AddDepartment = () => {
       setError(false);
 
       if (editingId) {
-        await api.put(`/department/update/${editingId}`, { deptName }); // ✅ FIXED
+        await api.put(`/department/update/${editingId}`, { deptName }); 
         setMessage("Department updated successfully");
       } else {
-        await api.post("/department/add", { deptName }); // ✅ FIXED
+        await api.post("/department/add", { deptName });
         setMessage("Department added successfully");
       }
 

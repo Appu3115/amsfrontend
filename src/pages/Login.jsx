@@ -28,16 +28,23 @@ const Login = () => {
       const res = await api.post("/user/login", form);
       const data = res.data;
 
+      if (!data.token) {
+        throw new Error("Token missing in login response");
+      }
+
       const role = data.role?.toLowerCase();
       if (!role) throw new Error("Role missing in login response");
 
       // 🧹 Clear previous session
       sessionStorage.clear();
 
-      // ✅ Store user by role
+      // ✅ Store token separately
+      sessionStorage.setItem("token", data.token);
+
+      // ✅ Store user info
       sessionStorage.setItem(`user_${role}`, JSON.stringify(data));
 
-      // 🚀 Direct login to dashboard
+      // 🚀 Go to dashboard
       navigateToDashboard(role);
 
     } catch (err) {

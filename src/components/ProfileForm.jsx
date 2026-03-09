@@ -14,7 +14,7 @@ const getLoggedUser = () =>
 
 const ProfileForm = () => {
   const user = getLoggedUser();
-  const employeeId = user?.employeeId;
+  const employeeId = user?.employeeId; // still used for medical API if needed
 
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showMedicalModal, setShowMedicalModal] = useState(false);
@@ -35,17 +35,16 @@ const ProfileForm = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  /* ===== Image adjust ===== */
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
-  /* ================= LOAD PROFILE + MEDICAL ================= */
+  /* ================= LOAD PROFILE ================= */
+
   const loadProfile = async () => {
     try {
-      // Profile
-      const res = await api.get(`/user/getprofile/${employeeId}`);
+      const res = await api.get(`/user/getprofile`);
       setProfile(res.data);
 
       setForm({
@@ -55,7 +54,6 @@ const ProfileForm = () => {
         emergencyContact2: res.data.emergencyContact2 || "",
       });
 
-      // Medical info (optional)
       try {
         const medicalRes = await api.get(
           `/user/getprofile/medical/${employeeId}`
@@ -71,10 +69,11 @@ const ProfileForm = () => {
   };
 
   useEffect(() => {
-    if (employeeId) loadProfile();
-  }, [employeeId]);
+    loadProfile();
+  }, []);
 
   /* ================= IMAGE UPLOAD ================= */
+
   const uploadImage = async (file) => {
     setUploading(true);
 
@@ -93,6 +92,7 @@ const ProfileForm = () => {
   };
 
   /* ================= SAVE PROFILE ================= */
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -106,15 +106,16 @@ const ProfileForm = () => {
       const payload = { ...form, imageURL };
 
       if (!profile?.address) {
-        await api.post(`/user/createprofile/${employeeId}`, payload);
+        await api.post(`/user/createprofile`, payload);
       } else {
-        await api.put(`/user/update/${employeeId}`, payload);
+        await api.put(`/user/update`, payload);
       }
 
       setOpenEdit(false);
       setSelectedFile(null);
       setZoom(1);
       setPosition({ x: 0, y: 0 });
+
       loadProfile();
 
     } finally {
@@ -123,6 +124,7 @@ const ProfileForm = () => {
   };
 
   /* ================= IMAGE DRAG ================= */
+
   const handleMouseDown = (e) => {
     setDragging(true);
     dragStart.current = {
@@ -133,6 +135,7 @@ const ProfileForm = () => {
 
   const handleMouseMove = (e) => {
     if (!dragging) return;
+
     setPosition({
       x: e.clientX - dragStart.current.x,
       y: e.clientY - dragStart.current.y,
@@ -147,7 +150,9 @@ const ProfileForm = () => {
 
   return (
     <div className="profile-page">
-      {/* ===== HERO ===== */}
+
+      {/* HERO */}
+
       <div className="profile-hero">
         <img
           src={
@@ -189,8 +194,10 @@ const ProfileForm = () => {
         </div>
       </div>
 
-      {/* ===== DETAILS ===== */}
+      {/* DETAILS */}
+
       <div className="profile-sections">
+
         <section>
           <h3>Basic Information</h3>
           <div className="info-grid">
@@ -218,7 +225,6 @@ const ProfileForm = () => {
           </div>
         </section>
 
-        {/* ===== MEDICAL INFO ===== */}
         <section>
           <h3>Medical Information</h3>
           <div className="info-grid">
@@ -232,6 +238,7 @@ const ProfileForm = () => {
                   : "-"
               }
             />
+
             <Info
               wide
               label="Medical Details"
@@ -243,9 +250,11 @@ const ProfileForm = () => {
             />
           </div>
         </section>
+
       </div>
 
-      {/* ===== EDIT PROFILE MODAL ===== */}
+      {/* EDIT PROFILE MODAL */}
+
       {openEdit && (
         <div
           className="modal-overlay"
@@ -253,6 +262,7 @@ const ProfileForm = () => {
           onMouseUp={handleMouseUp}
         >
           <div className="modal">
+
             <h3>{profile?.address ? "Update Profile" : "Create Profile"}</h3>
 
             <input
@@ -296,7 +306,9 @@ const ProfileForm = () => {
             <textarea
               placeholder="Address"
               value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, address: e.target.value })
+              }
             />
 
             <input
@@ -317,6 +329,7 @@ const ProfileForm = () => {
 
             <div className="modal-actions">
               <button onClick={() => setOpenEdit(false)}>Cancel</button>
+
               <button
                 className="edit-btn"
                 onClick={handleSave}
@@ -325,24 +338,28 @@ const ProfileForm = () => {
                 {saving ? "Saving…" : "Save"}
               </button>
             </div>
+
           </div>
         </div>
       )}
 
-      {/* ===== CHANGE PASSWORD ===== */}
+      {/* CHANGE PASSWORD */}
+
       {showChangePassword && (
         <ChangePassword onClose={() => setShowChangePassword(false)} />
       )}
 
-      {/* ===== MEDICAL MODAL ===== */}
+      {/* MEDICAL MODAL */}
+
       {showMedicalModal && (
         <MedicalInfoModal
           onClose={() => {
             setShowMedicalModal(false);
-            loadProfile(); // 🔄 refresh medical info
+            loadProfile();
           }}
         />
       )}
+
     </div>
   );
 };

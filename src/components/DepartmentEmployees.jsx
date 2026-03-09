@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../api/axios";
 import "../styles/DepartmentEmployees.css";
 import EmployeeProfileModal from "./EmployeeProfileModal";
@@ -17,8 +17,23 @@ const DepartmentEmployees = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
-  const managerData = sessionStorage.getItem("user_manager");
-  const manager = managerData ? JSON.parse(managerData) : null;
+  /* 🔐 Detect logged-in user */
+  const currentUser = useMemo(() => {
+    const admin = sessionStorage.getItem("user_admin");
+    const manager = sessionStorage.getItem("user_manager");
+    const employee = sessionStorage.getItem("user_employee");
+
+    return admin
+      ? JSON.parse(admin)
+      : manager
+      ? JSON.parse(manager)
+      : employee
+      ? JSON.parse(employee)
+      : null;
+  }, []);
+
+  const isAdmin = currentUser?.role === "ADMIN";
+  const isManager = currentUser?.role === "MANAGER";
 
   useEffect(() => {
     loadEmployees();
@@ -28,14 +43,11 @@ const DepartmentEmployees = () => {
     applyFilter(activeTab);
   }, [employees, activeTab]);
 
+  /* ================= LOAD ================= */
   const loadEmployees = async () => {
     try {
-      if (!manager?.employeeId) return;
-
-      const res = await api.get("/user/employees", {
-        headers: { employeeId: manager.employeeId },
-      });
-
+      setLoading(true);
+      const res = await api.get("/user/employees");
       setEmployees(res.data || []);
     } catch (err) {
       console.error(err);
@@ -47,21 +59,17 @@ const DepartmentEmployees = () => {
   const applyFilter = (tab) => {
     switch (tab) {
       case TABS.PROBATION:
-        setFiltered(
-          employees.filter((e) => e.status === "PROBATION")
-        );
+        setFiltered(employees.filter((e) => e.status === "PROBATION"));
         break;
       case TABS.CONFIRMED:
-        setFiltered(
-          employees.filter((e) => e.status === "CONFIRMED")
-        );
+        setFiltered(employees.filter((e) => e.status === "CONFIRMED"));
         break;
       default:
         setFiltered(employees);
     }
   };
 
-  /* ===== REQUEST CONFIRMATION ===== */
+  /* ================= REQUEST CONFIRMATION ================= */
   const requestConfirmation = async (employeeId) => {
     const ok = window.confirm(
       `Send confirmation request to admin for ${employeeId}?`
@@ -70,17 +78,7 @@ const DepartmentEmployees = () => {
 
     try {
       setActionLoading(employeeId);
-
-      await api.put(
-        `/user/${employeeId}/request-confirmation`,
-        null,
-        {
-          params: {
-            managerEmployeeId: manager.employeeId,
-          },
-        }
-      );
-
+      await api.put(`/user/${employeeId}/request-confirmation`);
       await loadEmployees();
     } catch (err) {
       alert(err.response?.data || "Failed to request confirmation");
@@ -89,7 +87,7 @@ const DepartmentEmployees = () => {
     }
   };
 
-  /* ===== DELETE ===== */
+  /* ================= DELETE ================= */
   const deleteEmployee = async (employeeId) => {
     const ok = window.confirm(
       `Are you sure you want to delete employee ${employeeId}?`
@@ -98,7 +96,6 @@ const DepartmentEmployees = () => {
 
     try {
       setActionLoading(employeeId);
-
       await api.delete(`/user/delete/${employeeId}`);
       await loadEmployees();
     } catch (err) {
@@ -183,27 +180,30 @@ const DepartmentEmployees = () => {
                 </td>
 
                 <td className="action-cell">
-                  {/* SHOW REQUEST ONLY IN PROBATION TAB */}
-                  {activeTab === TABS.PROBATION && (
-                    <button
-                      className="request-btn"
-                      disabled={actionLoading === emp.employeeId}
-                      onClick={() =>
-                        requestConfirmation(emp.employeeId)
-                      }
-                    >
-                      {actionLoading === emp.employeeId
-                        ? "Sending..."
-                        : "Request"}
-                    </button>
-                  )}
+                  {/* Manager can request confirmation in probation */}
+                  {isManager &&
+                    activeTab === TABS.PROBATION && (
+                      <button
+                        className="request-btn"
+                        disabled={actionLoading === emp.employeeId}
+                        onClick={() =>
+                          requestConfirmation(emp.employeeId)
+                        }
+                      >
+                        {actionLoading === emp.employeeId
+                          ? "Sending..."
+                          : "Request"}
+                      </button>
+                    )}
 
-                  {/* SHOW DELETE ONLY OUTSIDE PROBATION TAB */}
-                  {activeTab !== TABS.PROBATION && (
+                  {/* Admin + Manager can delete */}
+                  {(isAdmin || isManager) && (
                     <button
                       className="delete-btn"
                       disabled={actionLoading === emp.employeeId}
-                      onClick={() => deleteEmployee(emp.employeeId)}
+                      onClick={() =>
+                        deleteEmployee(emp.employeeId)
+                      }
                     >
                       {actionLoading === emp.employeeId
                         ? "Processing..."
